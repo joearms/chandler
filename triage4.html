@@ -1,0 +1,329 @@
+<script src="./jquery-1.9.1.min.js"></script>
+<link rel="stylesheet" href="./jquery-ui.css" />
+<script src="./jquery-ui.js"></script>
+
+<style>
+
+body { 
+    margin-left:50px;
+    margin-right:50px;
+}
+
+.btiddler {
+  color: #900;
+  padding: 1px;
+  background: #D9F1FF;
+  font-weight: bold;
+  font-size: 14px;
+  border: 1px solid #900;
+}
+
+.btiddler:hover {
+  color: #FFF;
+  background: #900;
+}
+
+
+.row_flash:hover {
+  background: #efefef;
+}
+
+table.entries
+{ 
+    border-collapse: collapse;
+    font-face: Arial;
+    font-size: 0.9em
+}
+  
+table.entries td,th { text-align:left;}
+
+table.entries td { padding: 3px 0; }
+
+
+.lineabove { border-top: 1px solid black}
+
+.lineright { border-right: 2px solid black}
+
+.flag_urgent {
+    border-radius:3px;padding:2px 0px 12px 5px; 
+    background-color:#ff9999;
+}
+
+.flag_later {border-radius:3px;padding:2px 0px 2px 5px; 
+	      background-color:yellow;
+	     }
+
+.flag_done {border-radius:3px;padding:2px 0px 2px 5px; 
+	    background-color:#e8e8e8;
+	   }
+
+</style>
+
+<p>This is the goal <a href="https://hub.chandlerproject.org/pim">PIM</a>
+<a href="http://chandlerproject.org/Notes/MimiYinNotes">Notes></a></p>
+
+
+<table width="100%">
+  <tr>
+    <td valign="top" class="lineright" width="18%">
+      <table width="100%"> <!-- left table -->
+	<tr>
+	  <td><input style="width:95%;" value="COLLECTIONS" id="input1"></input></td>
+	  <td><button>+</button></td>
+	  <td><button>-</button></td>
+	</tr>
+      </table>  <!-- left table -->
+    </td>
+
+    <td valign="top"  class="lineright">
+      <table> <!-- button bar -->
+	<tr>
+	  <td><img height="24px" src="./list_icon.png"/></td>
+	  <td><img height="24px" src="./calendar.png"/></td>
+	  <td width="50%"><input style="width:100%;" id="new_item"></input></td>
+	  <td>
+	    <!-- the grid control -->
+	    <table>
+	      <tr>
+		<td><button>prev</button></td>
+		<td><input style="width:40px;" id="max_page" ></input></td>
+		<td>of 1</td>
+		<td><button>next</button></td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+      </table> <!-- button bar -->
+      
+      <!-- the list of entries -->
+      <table class="entries" width="100%">
+	<thead class="lineabove">
+	  <tr><th><img src="./star.gif"/></th>
+	  <th class="btiddler">Title</th>
+	  <th class="btiddler">Edited By</th>
+	  <th class="btiddler">Starts on</th>
+	  <th class="btiddler">Status</th></tr>
+	</thead>
+        <tbody id="entries"> <!-- this will be changed later -->
+	  <tr class="lineabove">
+	    <td><img src="./star.gif"/></td>
+	    <td>Make template system</td>
+	    <td>joearms</td>
+	    <td>20 Aug 12 2007 12:12:12</td>
+	    <td style="border-radius:3px;padding:2px 0px 2px 5px; background-color:yellow;">LATER</td>
+	  </tr>
+	  <tr class="lineabove">
+	    <td><img src="./star.gif"/></td>
+	    <td>Make CSS</td>
+	    <td>joearms</td>
+	    <td>20 Aug 12 2007 12:12:12</td>
+	    <td style="border-radius:3px;padding:2px 0px 2px 5px; background-color:#ff9999;">NOW</td>
+	  </tr>
+	</tbody>
+      </table>
+      <!-- end of the entry list -->
+    </td>
+    <td valign="top" width="27%">
+      <!-- editor col 3 -->
+      <table width="100%">
+	<tr>
+	    <button style="background-color:#ff9999;border-radius:10px">Remove</button>
+	    <button style="background-color:#99ccff;border-radius:10px">Save</button>
+
+	</tr>
+	<tr>
+	  <td colspan="2">
+	    <button style="background-color:#ff9999;border-radius:10px">NOW</button>
+	    <button style="background-color:yellow;border-radius:10px">LATER</button>
+	    <button style="background-color:#e8e8e8;border-radius:10px">DONE</button>
+	    <button><img src="./star.gif"/></button>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="2" width="100%">
+	    <input style="width:100%;" id="input" id="input"></input>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="2" width="100%">
+	    <div style="width:100%;" class="btiddler">Add to Calendar</div>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="2" width="100%">
+	    <div>
+	      <p>Date: <input type="text" id="datepicker" /></p>
+	    </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="2" width="100%">
+	    <textarea rows="20" style="width:100%">
+</textarea>
+	  </td>
+	</tr>
+      </table>
+      <!-- editor col 3 -->
+    </td>
+  </tr>
+</table>
+
+<img id="chandler" src="./chandler.png" width="1100px"/>
+
+<h1>Log</h1>
+
+<p>Basic template completed</p>
+
+<script>
+
+$(window).ready(initialize);
+
+$(window).resize(function(){
+    var w = $(window).width();
+    console.log('width',w);
+    $("#chandler").css('width', w-100);
+});
+
+
+var max=0;
+var item = new Array();
+var who="joe";
+
+item[0] = {id:1,
+	   star:false,
+	   collection:'default',
+	   title:"First entry",
+	   content:"Some context",
+	   date:"YYMMDD 111",
+	   status:'urgent',
+	   author:'joearms'};
+
+item[1] = {id:2,
+	   star:true,
+	   collection:'default',
+	   title:"Second entry",
+	   content:"Some context",
+	   date:"YYMMDD 222",
+	   status:'later',
+	   author:'joearms'};
+
+item[2] = {id:3,
+	   star:true,
+	   collection:'default',
+	   title:"Second entry",
+	   content:"LIne 3",
+	   date:"YYMMDD 222",
+	   status:'done',
+	   author:'joearms'};
+max = 3;
+
+function initialize(){
+    // called when the window is ready
+    
+    var w = $(window).width();
+    $("#chandler").css('width', w-100);
+    // hook up the datepicker
+    $("#datepicker").datepicker();
+
+    $("#new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+    
+    // now show the entries in the list
+    show_entries();
+}
+
+function make_new_item(title){
+    item[max] = {author:who,
+		 star:true,
+		 status:'urgent',
+		 date:time_stamp(),
+		 title:title,
+		 content:""};
+    max++;
+    show_entries();
+}
+
+function show_entries(){
+    $("#entries").html('cleared');
+    var i;
+    for(i=0;i<max;i++)
+	show_entry(item[i]);
+}
+
+function show_entry(o){
+    var row=$("<tr class='row_flash'>");
+    // starred
+    var td = $("<td>");
+    if(o.star){
+	td.append("<img src='./star.gif'>");
+    } else {
+	td.append('');
+    };
+    row.append(td);
+    // title
+    var td = $("<td>").append(o.title);
+    row.append(td);
+    // author
+    var td = $("<td>").append(o.author);
+    row.append(td);
+    // date
+    var td = $("<td>").append(o.date);
+    row.append(td);
+    // status
+    var td = $("<td>");
+    switch(o.status){
+    case 'urgent':
+	td.append("&nbsp;NOW");
+	td.addClass('flag_urgent');
+	break;
+    case 'later':
+	td.append("&nbsp;NOW");
+	td.addClass('flag_later');
+	break;
+    case 'done':
+	td.append("&nbsp;DONE");
+	td.addClass('flag_done');
+	break;
+    };
+    row.addClass('lineabove');
+    row.append(td);
+    row.attr('id','row'+o.id);
+    row.click(function(){row_clicked($(this));});
+    $("#entries").prepend(row);
+}
+
+function row_clicked(x){
+    console.log('row_clicked',x);
+    console.log('row_clicked',[x.attr('id')]);
+}
+
+function time_stamp(){
+    var now = new Date();
+    var years = now.getFullYear();
+    var months = now.getMonth()+1; //January is 0!
+    if(months<10)months='0'+months;    
+    var days = now.getDate();
+    if(days<10)days = '0'+days; 
+    var hours = now.getHours();
+    if(hours<10) hours = '0' + hours;
+    var mins = now.getMinutes();
+    if(mins < 10) mins= "0" + mins;
+    secs = now.getSeconds();
+    if(secs<10)secs = '0' + secs;
+    var str =  years + months + days + ' ' + hours + ':' + mins + ':' + secs;
+    return(str);
+}
+
+function read_input(){
+    console.log('read',$(this).val());
+}
+
+</script>

@@ -1,0 +1,259 @@
+
+<html>
+<link rel="stylesheet" href="../../assets/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="../../assets/css/bootstrap-responsive.min.css"/>
+<link rel="stylesheet" href="../../assets/css/docs.css"/>
+<link rel="stylesheet" href="../../assets/css/bootstrap-datetimepicker.min.css"/>
+<link rel="stylesheet" href="../../assets/css/datepicker.css"/>
+<link rel="stylesheet" href="../../assets/css/zebra_datepicker.css"/>
+
+<script src="./jquery-1.9.1.min.js"></script>
+<script src="../../assets/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../../assets/js/bootstrap-datepicker.js"></script>
+<script src="../../assets/js/zebra_datepicker.js"></script>
+
+
+<style>
+body {margin-left:50px; margin-right:50px}
+.show-grid [class*="span"] {text-align:left}
+</style>
+
+https://github.com/ckrack/fbootstrapp/tree/master/lib
+http://bootsnipp.com/resources
+
+<p><a href="file://localhost/Users/joe/nobackup/bootstrap-master/docs/getting-started.html">Local documentation</a></p>
+
+<li><a href="http://tarruda.github.com/bootstrap-datetimepicker/">datepciker</a>
+
+
+is great - but canot make perminant and it is badly positioned
+
+
+
+<li><a href="http://stefangabos.ro/jquery/zebra-datepicker/#requirements">Zebra datapicker</a>
+
+<hr>
+
+<p>Another test
+<input type="text" value="02/16/12" data-date-format="mm/dd/yy" id="datepicker123" >
+
+<script>
+$('#datepicker123').datepicker('show');
+</script>
+
+
+<p>End
+
+
+<p>Test of datetime
+
+  <div id="datetimepicker2" class="input-append">
+    <input data-format="MM/dd/yyyy HH:mm:ss PP" type="text"></input>
+    <span class="add-on">
+      <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+      </i>
+    </span>
+  </div>
+
+
+<script type="text/javascript">
+    $('#datetimepicker2').datetimepicker({
+      language: 'en',
+      pick12HourFormat: true
+    });
+</script>
+<p>end of test
+
+<div class="container-fluid">
+  <div class="row-fluid show-grid">
+    <div class="span2">
+      categories
+    </div>
+    <div class="span7">
+      <p class="text-left">New frag: <input id="input" id="input"></input></p>
+      <table width="100%" class="table table-hover table-condensed table-bordered">
+	<thead>
+	  <tr><th><img src="./star.gif"/></th>
+	  <th>Title</th><th>Edited By</th><th>Starts on</th><th>Status</th></tr>
+	</thead>
+	<tbody id="entries">
+	  <tr>
+	    <td>
+	      <img src="./star.gif"/>
+	    </td>
+	    <td>Edit template systemTitle</td>
+	    <td>Joe Armstrng</td>
+	    <td>20 Aug 12 2007 12:12:12</td>
+	  </tr>
+	</tbody>
+      </table>
+    </div>
+    <div class="span3">
+      <p>here</p>
+
+      <div id="datetimepicker3" class="input-append">
+	<input data-format="MM/dd/yyyy HH:mm:ss PP" type="text"></input>
+	<span class="add-on">
+	  <i data-time-icon="icon-time" data-date-icon="icon-calendar">
+	  </i>
+	</span>
+      </div>
+
+
+      <p>Another test
+      <input type="text" value="02/16/12" data-date-format="mm/dd/yy" id="datepicker124" >
+	
+	<script>
+	  $('#datepicker124').datepicker();
+	</script>
+
+  
+	<div>
+	  <input id="datepicker-example13" type="text"/>
+	  <div id="container" style="margin: 10px 0 0 0"></div>
+
+	</div>
+
+	<script>
+	  $('#datepicker-example13').Zebra_DatePicker({
+	  //always_visible: $('#container'),
+          offset:[-300,280],
+	  onSelect: function(view, data){
+	  console.log('selected',[view,data]);
+	  }
+	  });
+	</script>
+
+
+      <form>
+	<input type="text" id="inputEmail" placeholder="Email"/>
+	<textarea rows="10"></textarea>
+      </form>
+      <button class="btn btn-primary btn-mini">save</button>
+    </div>
+  </div>
+</div>
+
+<div class="row row-fluid show-grid">
+  <div class="span12">
+    <h1>triage1</h1>
+    <p>I should use the nav elements</p> 
+    <p>Modelled on <a href="https://hub.chandlerproject.org/pim">PIM</a></p>
+    <p></p>
+  </div>
+</div>
+
+
+
+
+
+
+<script>
+
+
+  $('#datetimepicker3').datetimepicker({
+      language: 'en',
+      pick12HourFormat: true
+    });
+
+$(document).ready(go);
+
+
+
+var max=0;
+var item = new Array();
+var who="joe";
+
+function go(){
+  $("#input").keydown(function(e){
+      var keyCode = e.keyCode || e.which;
+  
+      if (keyCode == 13 || keyCode == 10) {
+	  var value = $(this).val();
+	  console.log('read',value);
+	  $(this).val('');
+	  make_new_item(value);
+	  return false;
+      }
+  });
+}
+
+function make_new_item(title){
+    item[max] = {author:who,
+		 star:true,
+		 status:'urgent',
+		 date:time_stamp(),
+		 title:title,
+		 content:""};
+    max++;
+    show_entries();
+}
+
+function show_entries(){
+    $("#entries").html('');
+    var i;
+    for(i=0;i<max;i++)
+	show_entry(item[i]);
+}
+
+function show_entry(o){
+    var row=$("<tr>");
+    // starred
+    var td = $("<td>");
+    if(o.star){
+	td.append("<img src='./star.gif'>");
+    } else {
+	td.append('');
+    };
+    row.append(td);
+    // title
+    var td = $("<td>").append(o.title);
+    row.append(td);
+    // author
+    var td = $("<td>").append(o.author);
+    row.append(td);
+    // date
+    var td = $("<td>").append(o.date);
+    row.append(td);
+    // status
+    var td = $("<td>");
+    var button = $("<button class='btn-mini'>").append(o.status);
+    switch(o.status){
+    case 'urgent':
+	button.addClass('btn-danger');
+	break;
+    case 'later':
+	button.addClass('btn-warning');
+	break;
+    case 'done':
+	button.addClass('btn-inverse');
+	break;
+    };
+    td.append(button);
+    row.append(td);
+    $("#entries").prepend(row);
+}
+
+function time_stamp(){
+    var now = new Date();
+    var years = now.getFullYear();
+    var months = now.getMonth()+1; //January is 0!
+    if(months<10)months='0'+months;    
+    var days = now.getDate();
+    if(days<10)days = '0'+days; 
+    var hours = now.getHours();
+    if(hours<10) hours = '0' + hours;
+    var mins = now.getMinutes();
+    if(mins < 10) mins= "0" + mins;
+    secs = now.getSeconds();
+    if(secs<10)secs = '0' + secs;
+    var str =  years + months + days + ' ' + hours + ':' + mins + ':' + secs;
+    return(str);
+}
+
+function read_input(){
+    console.log('read',$(this).val());
+}
+
+</script>
+
