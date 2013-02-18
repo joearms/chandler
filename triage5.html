@@ -1,0 +1,459 @@
+<script src="./jquery-1.9.1.min.js"></script>
+<link rel="stylesheet" href="./jquery-ui.css" />
+<script src="./jquery-ui.js"></script>
+
+<style>
+
+body { 
+    margin-left:50px;
+    margin-right:50px;
+}
+
+.collapse{
+    border-radius:10px;
+    box-shadow: 5px 5px 2px #888;
+    background-color:#aabbcc;
+}
+
+.collapse:hover{
+   background-color:red}
+
+
+div.win {
+    background-color:#eaeaea;
+    border-radius:10px;
+    box-shadow: 5px 5px 2px #888;
+}
+
+table.but {
+    margin:4px;
+    heigth: 60px;
+    }
+
+table.but:hover {
+    background-color:#aaa;
+    box-shadow: 5px 5px 2px #888;
+    border-radius:10px;
+}
+
+.btiddler {
+  color: #900;
+  padding: 1px;
+  background: #D9F1FF;
+  font-weight: bold;
+  font-size: 14px;
+  border: 1px solid #900;
+}
+
+.btiddler:hover {
+  color: #FFF;
+  background: #900;
+}
+
+
+.row_flash:hover {
+  background: #efefef;
+}
+
+table.entries
+{ 
+     /* border-collapse: collapse; */
+    font-face: Arial;
+    font-size: 0.9em
+}
+  
+table.entries td,th { text-align:left;}
+
+table.entries td { padding: 3px 0; }
+
+
+.lineabove { border-top: 1px solid black}
+
+.lineright { border-right: 2px solid black}
+
+.flag_now {
+    border-radius:3px;padding:2px 0px 12px 5px; 
+    background-color:#ff9999;
+}
+
+.flag_later {border-radius:3px;padding:2px 0px 2px 5px; 
+	      background-color:yellow;
+	     }
+
+.flag_done {border-radius:3px;padding:2px 0px 2px 5px; 
+	    background-color:#e8e8e8;
+	   }
+
+</style>
+
+<p>This is the goal <a href="https://hub.chandlerproject.org/pim">PIM</a>
+<a href="http://chandlerproject.org/Notes/MimiYinNotes">Notes</a>
+<a href="https://github.com/joearms/chandler">Giticus hubicus repositoricus</a></p>
+
+<h2>Milestones</h2>
+
+<ol>
+  <li>Add collapsable regions to job list. One per category</li>
+  <li>Add cycle button to item list (ie button in right hand side of item) should
+  cyle the staus but leave in-place. The "Clean UP " button reorganises into categories 
+  
+  <li>Complete local interaction (without calendar functionality)</li>
+  <li>Make simple backend - store everything</li>
+  <li>Make compatible with JSON contracts</li>
+  <li>Release one - needs name of place in chandler novel</li>
+</ol>
+
+<h2>Data Model</h2>
+
+<p>An item looks like this (in Javascript)</p>
+<pre><b>
+
+item[1] = {index:2,
+	   star:true,
+	   title:"Item title",
+	   content:"Some context",
+	   start_date:"YYMMDD",
+	   start_time:"YYMMDD",
+	   stop_date:"YYMMDD",
+	   stop_time:"HHMM",
+	   whole_day:false,  // bool
+	   repeat:'once',    // onnce dayly weekly ...    
+	   status:'later',
+	   author:'joearms'};
+	 </b>
+</pre>
+
+<h2>Mockup</h2>
+
+<h2>The next line is not displayed</h2>
+<div style="display:none">
+  This is not displayed
+</div>
+
+<hr>
+
+<div class="win">
+  <table width="100%">
+    <tr>
+      <td colspan="3">      
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarAll.png"/></td></tr>
+	  <tr><td>All</td></tr>
+	</table>
+	
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarTask.png"/></td></tr>
+	  <tr><td>Starred</td></tr>
+	</table>
+	
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarEvent.png"/></td></tr>
+	  <tr><td>Calendar</td></tr>
+	</table>
+	
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarSync.png"/></td></tr>
+	  <tr><td>Sync</td></tr>
+	</table>
+	
+	
+	<input style="float:left;margin-top:15px;margin-left:25px;margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%" 
+	       value="Create a new note" id="input_new_item"></input>
+	
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarTriage.png"/></td></tr>
+	  <tr><td>Clean up</td></tr>
+	</table>
+	
+	<table class="but" style="float:left">
+	  <tr><td align="center"><img src="images/ApplicationBarSend.png"/></td></tr>
+	  <tr><td>Send</td></tr>
+	</table>
+      </td>
+    </tr>
+    
+    <tr>
+      <td valign="top" class="lineright" width="18%">
+	<table width="100%"> <!-- left table -->
+	  <tr>
+	    <td><input style="width:95%;" value="COLLECTIONS" id="input1"></input></td>
+	    <td><button>+</button></td>
+	    <td><button>-</button></td>
+	  </tr>
+	</table>  <!-- left table -->
+      </td>
+      
+      <td valign="top"  class="lineright">
+	<!-- the center table -->
+	<td>
+	  <!-- the top row -->
+	  <table class="entries" width="100%">
+	      <tr>
+		<th><img src="./star.gif"/></th>
+		<th class="btiddler">Title</th>
+		<th class="btiddler">Edited By</th>
+		<th class="btiddler">Starts on</th>
+		<th class="btiddler">Status</th>
+	      </tr>
+	  </table>
+	  <tr>
+	    <td class="collapse" colspan="5">&nbsp;NOW 5 items</td>
+	  </tr>
+	  <tr id="new_region" style="display:none;"> <!-- this is collapsable -->
+	    <td>
+	      <table class="entries" width="100%">
+		<tr class="lineabove">
+		  <td><img src="./star.gif"/></td>
+		  <td>Make template system</td>
+		  <td>joearms</td>
+		  <td>20 Aug 12 2007 12:12:12</td>
+		  <td style="border-radius:3px;padding:2px 0px 2px 5px; background-color:yellow;">LATER</td>
+		</tr>
+	      </table>
+	    </td>
+	  </tr>
+	  <tr>
+	    <td class="collapse" colspan="5">&nbsp;LATER 2 items</td>
+	  </tr>
+	  <tr id="later_region">
+	    <td>
+	      Empty 
+	    </td>
+	  </tr>
+	  <tr>
+	    <td class="collapse" colspan="5">&nbsp;LATER 2 items</td>
+	  </tr>
+	</td>
+	<td>
+	  <table width="100%">
+	    <tr>
+	      <td valign="top" width="27%">
+		<!-- editor col 3 -->
+		<table width="100%">
+		<tr>
+		  <button style="background-color:#ff9999;border-radius:10px">Remove</button>
+		  <button style="background-color:#99ccff;border-radius:10px">Save</button>
+		  
+		</tr>
+		<tr>
+		  <td colspan="2">
+		    <button style="background-color:#ff9999;border-radius:10px">NOW</button>
+		    <button style="background-color:yellow;border-radius:10px">LATER</button>
+		    <button style="background-color:#e8e8e8;border-radius:10px">DONE</button>
+		    <button><img src="./star.gif"/></button>
+		  </td>
+		</tr>
+		<tr>
+		  <td colspan="2" width="100%">
+		    <input style="width:100%;" id="input_edit_item"></input>
+		  </td>
+		</tr>
+		<tr>
+		  <td colspan="2" width="100%">
+		    <div style="width:100%;" class="btiddler">Add to Calendar</div>
+		  </td>
+		</tr>
+		<tr>
+		  <td colspan="2" width="100%">
+		    <div>
+		      <p>Date: <input type="text" id="datepicker" /></p>
+		    </div>
+		  </td>
+		</tr>
+		<tr>
+		  <td colspan="2" width="100%">
+		    <textarea rows="20" style="width:100%">
+		    </textarea>
+		  </td>
+		</tr>
+	      </table>
+	      <!-- editor col 3 -->
+	    </td>
+	  </tr>
+	</table>
+</div> <!-- window -->
+
+<h1>The GUI version is below</h1>
+
+<img id="chandler1" src="./chandler1.png" width="1100px"/>
+
+<h1>The original is below</h1>
+
+<img id="chandler" src="./chandler.png" width="1100px"/>
+
+
+<h1>Log</h1>
+
+<p>Basic template completed</p>
+
+<script>
+
+$(window).ready(initialize);
+
+$(window).resize(function(){
+    var w = $(window).width();
+    console.log('width',w);
+    $("#chandler").css('width', w-100);
+});
+
+
+var max=0;
+var item = new Array();
+var who="joe";
+
+// Should be
+
+var state = new Object();
+
+state = {now:[0,1], later:[2,3],done:[5]}; 
+
+// rensa 
+
+item[0] = {index:0,
+	   star:false,
+	   title:"First entry (id=0)",
+	   content:"Some context",
+	   date:"YYMMDD 111",
+	   status:'now',
+	   author:'joearms'};
+
+item[1] = {index:1,
+	   star:true,
+	   title:"Item with ID=1",
+	   content:"Some context",
+	   start_date:"YYMMDD",
+	   start_time:"YYMMDD",
+	   stop_date:"YYMMDD",
+	   stop_time:"HHMM",
+	   whole_day:false,  // bool
+	   repeat:'once',    // onnce dayly weekly ...    
+	   status:'later',
+	   author:'joearms'};
+
+item[2] = {index:2,
+	   star:true,
+	   collection:'default',
+	   title:"Item with Id=3",
+	   content:"LIne 3",
+	   date:"YYMMDD 222",
+	   status:'done',
+	   author:'joearms'};
+
+max = 3;
+
+function initialize(){
+    // called when the window is ready
+    
+    var w = $(window).width();
+    $("#chandler").css('width', w-100);
+    // hook up the datepicker
+    $("#datepicker").datepicker();
+
+    $("#input_new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+    
+    // now show the entries in the list
+    // show_entries();
+}
+
+function make_new_item(title){
+    item[max] = {author:who,
+		 index: max,
+		 star:true,
+		 status:'now',
+		 date:time_stamp(),
+		 title:title,
+		 content:""};
+    max++;
+    show_entries();
+}
+
+function show_entries(){
+    $("#entries").html('cleared');
+    var i;
+    for(i=0;i<max;i++)
+	show_entry(item[i]);
+}
+
+function show_entry(o){
+    var row=$("<tr class='row_flash'>");
+    // starred
+    var td = $("<td>");
+    if(o.star){
+	td.append("<img src='./star.gif'>");
+    } else {
+	td.append('');
+    };
+    row.append(td);
+    // title
+    var td = $("<td>").append(o.title);
+    row.append(td);
+    // author
+    var td = $("<td>").append(o.author);
+    row.append(td);
+    // date
+    var td = $("<td>").append(o.date);
+    row.append(td);
+    // status
+    var td = $("<td>");
+    switch(o.status){
+    case 'now':
+	td.append("&nbsp;NOW");
+	td.addClass('flag_now');
+	break;
+    case 'later':
+	td.append("&nbsp;LATER");
+	td.addClass('flag_later');
+	break;
+    case 'done':
+	td.append("&nbsp;DONE");
+	td.addClass('flag_done');
+	break;
+    };
+    row.addClass('lineabove');
+    row.append(td);
+    row.attr('index',o.index);
+    row.click(function(){row_clicked($(this));});
+    $("#entries").prepend(row);
+}
+
+function row_clicked(x){
+    console.log('row_clicked',x);
+    console.log('row_clicked',[x.attr('index')]);
+    var index = x.attr('index');
+    // fill in the side panel
+    var val = item[index].title;
+    console.log('val',val);
+    $("#input_edit_item").val(item[index].title);
+}
+
+function time_stamp(){
+    var now = new Date();
+    var years = now.getFullYear();
+    var months = now.getMonth()+1; //January is 0!
+    if(months<10)months='0'+months;    
+    var days = now.getDate();
+    if(days<10)days = '0'+days; 
+    var hours = now.getHours();
+    if(hours<10) hours = '0' + hours;
+    var mins = now.getMinutes();
+    if(mins < 10) mins= "0" + mins;
+    secs = now.getSeconds();
+    if(secs<10)secs = '0' + secs;
+    var str =  years + months + days + ' ' + hours + ':' + mins + ':' + secs;
+    return(str);
+}
+
+function read_input(){
+    console.log('read',$(this).val());
+}
+
+</script>
