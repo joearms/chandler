@@ -1,0 +1,182 @@
+<script src="./jquery-1.9.1.min.js"></script>
+<link rel="stylesheet" href="./jquery-ui.css" />
+<script src="./jquery-ui.js"></script>
+<style>
+
+body{ margin-left:50px; margin-right:50px}
+
+
+.fatlineabove { border-top: 2px solid black}
+
+.lineright { border-right: 2px solid black}
+
+
+div.win {
+    background-color:#eaeaea;
+    border-radius:10px;
+    box-shadow: 5px 5px 2px #888;
+}
+
+.flash {    
+    border-radius:10px;
+    box-shadow: 5px 5px 2px #888;
+    background-color:#aabbcc;
+    margin-bottom:7px;
+}
+
+.flash:hover{background-color:yellow}
+
+
+.but {
+    margin:4px;
+    heigth: 60px;
+    }
+
+.but:hover {
+    background-color:#aaa;
+    box-shadow: 5px 5px 2px #888;
+    border-radius:10px;
+}
+
+
+</style>
+<div class="win">
+  <table width="100%">
+    <tr>
+      <td colspan="3">
+	<table>
+	  <tr> <!-- start first row -->
+	    <td> <!-- a single entry -->
+	      <!-- button one -->
+	      <table class="but" style="float:left">
+		<tr><td align="center"><img src="images/ApplicationBarAll.png"/></td></tr>
+		<tr><td>All</td></tr>
+	      </table>
+	      
+	      <table class="but" style="float:left">
+		<tr><td align="center"><img src="images/ApplicationBarTask.png"/></td></tr>
+		<tr><td>Starred</td></tr>
+	      </table>
+	      
+	      <table class="but" style="float:left">
+		<tr><td align="center"><img src="images/ApplicationBarEvent.png"/></td></tr>
+		<tr><td>Calendar</td></tr>
+	      </table>
+	      
+	      <table class="but" style="float:left">
+		<tr><td align="center"><img src="images/ApplicationBarSync.png"/></td></tr>
+		<tr><td>Sync</td></tr>
+	      </table>
+	      
+	      <input style="float:left;margin-top:15px;margin-left:25px;margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%" 
+		     value="Create a new note" id="input_new_item"></input>
+	      
+	      <table class="but" style="float:left">
+		<tr><td align="center"><img src="images/ApplicationBarTriage.png"/></td></tr>
+		<tr><td>Clean up</td></tr>
+	      </table>
+	    </td>
+	  </tr>
+	</table>
+      </td> 
+    </tr> <!-- end of first row -->
+    <tr>
+      <td class= "fatlineabove lineright" valign="top" width="15%"> <!-- top panel -->
+	<h2>Collections</h2>
+	<ul>
+	  <li>A</li>
+	  <li>B</li>
+	</ul>
+	<pre>
+	  calendar
+	</pre>
+      </td> <!-- end top panel -->
+      <td class="fatlineabove lineright" valign="top"> <!-- center panel -->
+	<table width="100%">
+	  <colggroup>
+	    <col style="width:20px"/>
+	    <col style="width:15%"/>
+	    <col/>
+	    <col style="width:20%"/>
+	    <col style="width:80px"/>
+	  </colggroup>
+	  <tr>
+	    <td><img src="star.gif"/></td>
+	    <td><b>Who</b></td>
+	    <td><b>Title</b></td>
+	    <td><b>Date</b></td>
+	    <td><b>Status</b></td>
+	  </tr>
+	</table>
+	<div class="flash" id="now_toggle" style="width:100%">&nbsp;&nbsp;NOW</div>
+	<div id="now_data" width="100%">
+	  collapse now data
+	</div>
+	<div class="flash" id="later_toggle" style="width:100%">&nbsp;&nbsp;LATER</div>
+	<div id="later_data"  width="100%">
+	  collapse later data
+	</div>
+	<div class="flash" id="done_toggle" style="width:100%">&nbsp;&nbsp;DONE</div>
+	<div id="done_data" width="100%">
+	  collapse done data
+	</div>
+      </td> <!-- end center panel -->
+      <td class="fatlineabove" valign="top" width="30%"> <!-- right column -->
+	<table>
+	  <tr>
+	    <td>Bc1</td>
+	    <td>Bc2</td>
+	    <td>Bc3</td>
+	    <td>Bc4</td>
+	  </tr>
+	</table>
+	<p>Created on YYMMDD HH:MM AM</p>
+	<p>Alarm <button>Select</button></p>
+	<input style="width:100%;" val="title"></input>
+	<textarea style="width:100%;" rows="10">Text here
+	</textarea>
+	<p>Appears in:</p>
+      </td> <!-- end right column -->
+    </tr>
+  </table>
+</div>
+<p>Original</p>
+<img src="chandler1.png" width="1200px"/>
+<script>
+    
+    $(window).ready(initialize);
+    
+    function initialize(){
+    // called when the window is ready
+    $("#input_new_item").keydown(function(e){
+    var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+    
+    $("#now_toggle").click(
+	function(){
+	    $("#now_data").toggle('slow');
+	});
+
+    $("#later_toggle").click(
+	function(){
+	    $("#later_data").toggle('slow');
+	});
+
+    $("#done_toggle").click(
+	function(){
+	    $("#done_data").toggle('slow');
+	});
+
+    
+    // show_entries();
+}
+
+
+</script>
