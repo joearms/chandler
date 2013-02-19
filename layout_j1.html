@@ -1,0 +1,125 @@
+<script src="./jquery-1.9.1.min.js"></script>
+<link rel="stylesheet" href="./jquery-ui.css" />
+<script src="./jquery-ui.js"></script>
+<style>
+
+body{ margin-left:50px; margin-right:50px}
+
+div.win {
+    width:100%;
+    background-color:#eaeaea;
+    border-radius:3px;
+    padding:5 5 5 10;
+    box-shadow: 5px 5px 2px #888;
+}
+
+.flash {    
+    border-radius:2px;
+    background-color:#aabbcc;
+    margin-bottom:2px;
+}
+
+.flash:hover{background-color:yellow}
+
+.but {
+    margin:4px;
+    heigth: 60px;
+    }
+
+.but:hover {
+    background-color:#aaa;
+    box-shadow: 5px 5px 2px #888;
+    border-radius:10px;
+}
+</style>
+
+<p>This is the goal <a href="https://hub.chandlerproject.org/pim">PIM</a>
+<a href="http://chandlerproject.org/Notes/MimiYinNotes">Notes</a>
+<a href="https://github.com/joearms/chandler">Giticus hubicus repositoricus</a></p>
+
+<div id="win" class="win">
+    <div id="buttons" style="border:1px solid red"></div>
+    <div id="tables" style="margin-left:200px;border:1px solid red; width:50%"></div>
+</div>
+
+
+
+<p>Original</p>
+<img src="chandler1.png" width="1200px"/>
+
+
+<script>
+
+$(window).ready(initialize);
+
+function initialize(){
+    make_top_buttons();
+    make_centre_tables();
+    // $("#win").append("<h1>and more</h1>");
+
+    // called once
+    $("#input_new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+}
+
+function cols(){
+    var t = "<colgroup><col width='10px'><col width='15%'><col><col width='20%'>" +
+	"<col width='50px'></colgroup>";
+    return t;
+}
+
+function make_centre_tables(){
+    // top row
+    var t = "<table width='100%'>" + cols() + "<tr><td><img src='./star.gif'></td>" +
+	"<td><b>Who</b></td><td><b>Title</b></td><td><b>Date</b></td><td>" + 
+	"<b>Flag</b></td></tr></table>";
+    $("#tables").append(t);
+    collapse_row("t1", "NOW");
+    collapse_row("t2", "LATER");
+    collapse_row("t3", "DONE");
+}
+
+function collapse_row(tag, title){
+    var t1 = $("<div class='flash' width='100%'>" + title + "</div>");
+    $("#tables").append(t1);
+    var t2 = "<table width='100%'>" + cols() +
+	"<tbody id='" + tag + "'><tr><td>AAA</td></tr></tbody></table>";
+    $("#tables").append(t2);
+    t1.click(function(){$('#' + tag).toggle();});
+}
+
+
+function make_top_buttons(){
+    add_image_button("All", "ApplicationBarAll.png");
+    add_image_button("Starred", "ApplicationBarTask.png");
+    add_image_button("Calender", "ApplicationBarEvent.png")
+    add_image_button("Sync", "ApplicationBarSync.png");
+    add_entry();
+    add_image_button("Clean up", "ApplicationBarTriage.png");
+}
+
+function add_entry(){
+    var t = "<input style='display:inline-block;margin-top:15px;margin-left:25px;" +
+	"margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%'" +
+	"value='Create a new note' id='input_new_item'></input>";
+    $("#buttons").append(t);
+}
+
+
+function add_image_button(txt, img){
+    var t = "<table class='but' style='display:inline-block'>" +
+	"<tr><td align='center'><img src='images/" + img + "'/></td></tr>" +
+	"<tr><td>" + txt + "</td></tr></table>";
+    $("#buttons").append(t);
+}
+
+
+</script>
