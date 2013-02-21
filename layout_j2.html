@@ -48,12 +48,32 @@ div.win {
 <a href="http://chandlerproject.org/Notes/MimiYinNotes">Notes</a>
 <a href="https://github.com/joearms/chandler">Giticus hubicus repositoricus</a></p>
 
+<h2>Goals</h2>
+<ol>
+    <li><strike>make rows elements clickable</strike></li>
+    <li>make right sidebar - fill with row elements on click</li>
+</ol>
+
 <div id="win" class="win">
-    <div id="buttons" style="border:1px solid red"></div>
-    <div id="tables" style="margin-left:200px;border:1px solid blue; width:60%"></div>
+  <table width="100%">
+    <tr>
+      <td colspan="3">
+	<div id="buttons" style="border:1px solid red"></div>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top" width="15%">
+	<div id="left" style="border:1px solid gold;">Left</div>
+      </td>
+      <td valign="top">
+	<div id="tables" style="border:1px solid blue;">Table</div>
+      </td>
+      <td valign="top" width="30%">
+	<div id="edit" style="border:1px solid orange;">Edit</div>
+      </td>
+    </tr>
+  </table>
 </div>
-
-
 
 <p>Original</p>
 <img src="chandler1.png" width="1200px"/>
@@ -119,7 +139,7 @@ $(window).ready(initialize);
 function initialize(){
     make_top_buttons();
     make_centre_tables();
-    // make_clickable_rows();
+    make_clickable_rows();
     // $("#win").append("<h1>and more</h1>");
 
     // called once
@@ -175,10 +195,12 @@ function add_rows(rows){
 }
 
 function make_row(index, o){
-    var t = "<tr tag='" + index +"'><td>" + make_star(o.star) + "</td>" +
-	"<td>" + o.author +"</td>" + 
-	"<td>" + o.title + "</td>" +
-	"<td>" + o.date + "</td>" + make_status(o.status) + "</tr>";
+    var t = "<tr class='clickableX' tag='" + index +"'>" + 
+	"<td class='clickable'>" + make_star(o.star) + "</td>" +
+	"<td class='clickable'>" + o.author +"</td>" + 
+	"<td class='clickable'>" + o.title + "</td>" +
+	"<td class='clickable'>" + o.date + "</td>" + 
+	make_status(o.status) + "</tr>";
     return t;
 }
 
@@ -186,13 +208,13 @@ function make_status(x){
     var t;
     switch(x){
     case 'now':
-	t = "<td class='now b1'>NOW</td>";
+	t = "<td class='now b1 clickable'>NOW</td>";
 	break;
     case 'later':
-	t = "<td class='later b1'>LATER</td>";
+	t = "<td class='later b1 clickable'>LATER</td>";
 	break;
     case 'done':
-	t = "<td class='done b1'>DONE</td>";
+	t = "<td class='done b1 clickable'>DONE</td>";
 	break;
     };
     return t;
@@ -229,13 +251,10 @@ function add_image_button(txt, img){
 }
 
 function make_clickable_rows(){
-    $(".clickit").click(function(){
-	console.log('here', $(this).parent());
+    $(".clickable").click(function(){
+	var col = $(this).index();
 	var index = $(this).parent().attr('tag');
-	console.log('index=',index);
-	var col = $(this).parent().children.index($(this));
-
-	console.log('clicked',[index,col]);
+	handle_click(index, col);
     });
 }
 
@@ -243,6 +262,10 @@ function clicked_on_row(x){
     console.log('clicked on row',x);
     var tag = x.attr('tag');
     console.log('clicked on row with index=',tag);
+}
+
+function handle_click(index, col){
+    console.log('handle_click', ['index',index,'col',col]);
 }
 
 </script>

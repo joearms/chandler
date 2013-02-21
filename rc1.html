@@ -1,0 +1,512 @@
+<script src="./jquery-1.9.1.min.js"></script>
+<link rel="stylesheet" href="./jquery-ui.css" />
+<script src="./jquery-ui.js"></script>
+<style>
+
+body{
+    font-family: Arial;
+    margin-left:50px; margin-right:50px}
+
+.main td {background-color: white} 
+
+/* this line adds hover effect to the item rows */
+/* .main td:hover { background-color:#F0F7FF; } */
+
+
+td.b1 {color:white; width:70px; text-align:center}
+
+/* b2 are the NOW LATER DONE buttons at the top of the edit panel */
+
+.b2 {color:white;margin-right:5px;background-color:rgb(213,213,213); 
+     width:70px; text-align:center}
+
+.b3 {color:blue;margin-right:5px;background-color:rgb(213,213,213); 
+     width:100px; text-align:center; font-size:100%;}
+
+div.win {
+    width:100%;
+    background-color:rgb(246,244,242);
+    border-radius:20px;
+    padding:5 5 5 10;
+    box-shadow: 5px 5px 2px #888;
+}
+
+.flash { 
+    padding-left:20px;
+    border-radius:2px;
+    background-color:#aabbcc;
+    margin-bottom:2px;
+}
+
+.flash:hover{background-color:yellow}
+
+.but {
+    margin:4px;
+    heigth: 60px;
+    }
+
+.but:hover {
+    background-color:#aaa;
+    box-shadow: 5px 5px 2px #888;
+    border-radius:10px;
+}
+</style>
+
+<p>This is the goal <a href="https://hub.chandlerproject.org/pim">PIM</a>
+<a href="http://chandlerproject.org/Notes/MimiYinNotes">Notes</a>
+<a href="https://github.com/joearms/chandler">Giticus hubicus repositoricus</a></p>
+
+<h1>Release Candidate 1</h1>
+
+<h2>Goals</h2>
+<ol>
+    <li><strike>make rows elements clickable</strike></li>
+    <li><strike>make right sidebar - fill with row elements on click</strike></li>
+    <li><strike>make now later buttons work</strike></li>
+    <li><strike>fetch website data from web server</strike></li>
+    <li><strike>fetch state data from web server</strike></li>
+    <li><strike>store state data from web server</strike></li>
+</ol>
+
+<h2>Bugs</h2>
+<ul>
+    <li>Cannot reproduce: To reproduce this: remove all collection_* files
+press sync.
+    </li>
+</ul>
+
+<div id='debug'>
+</div>
+
+
+<div id="win" class="win">
+  <table width="100%">
+    <tr>
+      <td colspan="3">
+	<div id="buttons"></div>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top" width="15%">
+	<div id="left">Left</div>
+      </td>
+      <td valign="top">
+	<div id="tables">Table</div>
+      </td>
+      <td valign="top" width="25%">
+	<div id="edit">Edit</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p>Originals</p>
+<img src="chandler1.png" width="1200px"/>
+<img src="chandler.png" width="1200px"/>
+
+<script>
+
+var item = new Array();
+var who="joe";
+
+var status_color = new Array();
+status_color['now']        = 'rgb(0,204,0);';
+status_color['later']      = 'rgb(255,204,0);';
+status_color['done']       = 'rgb(92,92,92);';
+status_color['unselected'] = 'rgb(213,213,213);';
+
+var status_text = new Array();
+status_text['now']   = 'NOW';
+status_text['later'] = 'LATER';
+status_text['done']  = 'DONE';
+
+var next_state = new Array();
+next_state['now']   = 'later';
+next_state['later'] = 'done';
+next_state['done']  = 'now';
+
+// the highlighted button is the id of the button in the editor that
+// is highlighted. It is one of "#b_now" "#b_later" or "#b_done"
+
+var highlighted_button = "#b_now";
+
+// selected index is the index of the item that is currently in the editor
+var selected_index = 0;
+
+var state = new Object();
+
+state = {now:[0,1,2], later:[3,4], done:[5]}; 
+
+item[0] = {index:0,
+	   star:false,
+	   title:"First entry (id=0)",
+	   content:"Some content. This is a test",
+	   date:"YYMMDD 111",
+	   status:'now',
+	   author:'joearms'};
+
+item[1] = {index:1,
+	   star:true,
+	   title:"Item with ID=1",
+	   content:"Lorem ipsum",
+	   start_date:"YYMMDD",
+	   start_time:"YYMMDD",
+	   stop_date:"YYMMDD",
+	   stop_time:"HHMM",
+	   whole_day:false,  // bool
+	   repeat:'once',    // onnce dayly weekly ...    
+	   status:'later',
+	   author:'joearms'};
+
+item[2] = {index:2,
+	   star:true,
+	   collection:'default',
+	   title:"The dragon (Id=2)",
+	   content:"Once apon a time there was a dragon",
+	   date:"YYMMDD 222",
+	   status:'done',
+	   author:'joearms'};
+
+item[3] = {index:3,
+	   star:false,
+	   collection:'default',
+	   title:"Item with Id=3",
+	   content:"Where is my pipe, said Gandolf",
+	   date:"Wed Feb 20 2013 15:16:51",
+	   status:'done',
+	   author:'jimp'};
+
+item[4] = {index:3,
+	   star:true,
+	   collection:'default',
+	   title:"Item with Id=4",
+	   content:"Where is my pipe, said Gandolf",
+	   date:"Wed Feb 20 2013 15:16:51",
+	   status:'later',
+	   author:'jimmy'};
+
+item[5] = {index:5,
+	   star:true,
+	   collection:'default',
+	   title:"Item with Id=5",
+	   content:"Yes we can",
+	   date:"Wed Feb 20 2013 15:16:51",
+	   status:'later',
+	   author:'fred'};
+
+var max = 5;
+
+$(window).ready(initialize);
+
+function initialize(){
+    make_top_buttons();
+    $.ajax({url:'read_latest',
+	    success:function(x){
+		console.log('read', x);
+		var y = JSON.parse(x);
+		console.log('read', y);
+		state = y.state;
+		item = y.items;
+		make_centre_tables();
+	    }});
+    make_editor();
+    // called once
+    debug();
+}
+
+// this is where we define the column widths in the table
+function cols(){
+    var t = "<colgroup><col width='10px'><col width='10%'><col><col width='30%'>" +
+	"<col width='70px'></colgroup>";
+    return t;
+}
+
+function make_centre_tables(){
+    $("#tables").html('');
+    // top row
+    var t = "<table class='main1' width='100%'>" + cols() + 
+	"<tr><td><img src='./star.gif'></td>" +
+	"<td><b>Who</b></td><td><b>Title</b></td><td><b>Date</b></td><td>" + 
+	"<b>Flag</b></td></tr></table>";
+    $("#tables").append(t);
+    make_collapsable_row("t1", "NOW", state.now);
+    make_collapsable_row("t2", "LATER", state.later);
+    make_collapsable_row("t3", "DONE", state.done);
+    // now fill the rows with data
+    for(var i in item){
+	update_item_status(i, item[i].status);
+    };
+    make_clickable_cells();
+}
+
+function make_collapsable_row(tag, title, rows){
+    var t1 = $("<div class='flash' width='100%'>" + title + "</div>");
+    $("#tables").append(t1);
+    var t2 = "<table class='main' width='100%'>" + cols() +
+	"<tbody id='" + tag + "'>" + add_rows(rows) + "</tbody></table>";
+    $("#tables").append(t2);
+    t1.click(function(){$('#' + tag).toggle();});
+}
+
+function add_rows(rows){
+    console.log('add_rows:', rows);
+    var index,i,t;
+    t = "";
+    for(i in rows){ 
+	index = rows[i];
+	t += add_one_row(index, item[index]);
+    };
+    return t;
+}
+
+function add_one_row(index, o){
+    var t = "<tr id = 'row_" + index + "' tag='" + index +"'>" + 
+	"<td class='clickable'>" + make_star(o.star) + "</td>" +
+	"<td class='clickable'>" + o.author +"</td>" + 
+	"<td class='clickable'>" + o.title + "</td>" +
+	"<td class='clickable'>" + o.date + "</td>" + 
+	"<td class='b1 clickable'>XXX</td></tr>";
+    return t;
+}
+
+function make_status(x){
+    var t;
+    switch(x){
+    case 'now':
+	t = "<td class='now b1 clickable'>NOW</td>";
+	break;
+    case 'later':
+	t = "<td class='later b1 clickable'>LATER</td>";
+	break;
+    case 'done':
+	t = "<td class='done b1 clickable'>DONE</td>";
+	break;
+    };
+    return t;
+}
+
+function make_star(x){
+    if(x)
+	return "<img src='./star.gif'/>";
+    else
+	return "&nbsp;";
+}
+
+function make_top_buttons(){
+    add_image_button("All", "ApplicationBarAll.png");
+    add_image_button("Starred", "ApplicationBarTask.png");
+    add_image_button("Calender", "ApplicationBarEvent.png")
+    add_image_button("Sync", "ApplicationBarSync.png");
+    add_entry();
+    add_image_button("Clean up", "ApplicationBarTriage.png");
+}
+
+function add_entry(){
+    var t = "<input style='display:inline-block;margin-top:15px;margin-left:25px;" +
+	"margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%'" +
+	"value='Create a new note' id='input_new_item'></input>";
+    $("#buttons").append(t);
+    // hook an event handler onto the entry
+    $("#input_new_item").focus(function(e){
+	$(this).val('');
+    });
+
+    $("#input_new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('Create a new note');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+
+}
+
+function add_image_button(txt, img){
+    var t = $("<table class='but' style='display:inline-block'>" +
+	"<tr><td align='center'><img src='images/" + img + "'/></td></tr>" +
+	"<tr><td>" + txt + "</td></tr></table>");
+    t.click(function(){button_image_clicked(txt);});
+    $("#buttons").append(t);
+}
+
+function make_clickable_cells(){
+    // make all <td> with class .clickable clickable
+    $(".clickable").click(function(){
+	var col = $(this).index();
+	var index = $(this).parent().attr('tag');
+	button_click_on_cell(index, col);
+    });
+}
+
+function add_editor(index){
+    possibly_save_changes();
+    var txt = item[index].content;
+    $("#e_1").val(item[index].title);
+    $("#e_2").val(txt);
+    highlight_button(item[index].status);
+}
+
+function highlight_button(status){
+    // highlight the correct button status = 'now' | 'later' | 'done'
+    // clear the color on the last highlighed button - set color to
+    // the same as the class b2
+    console.log('status,hi',[status,highlighted_button]);
+    $(highlighted_button).css('background-color',status_color['unselected']);
+    highlighted_button = '#b_' + status;
+    $(highlighted_button).css('background-color',status_color[status]);
+}
+
+function possibly_save_changes(){
+    console.log('*** check for changes and save ...***');
+}
+
+
+//----------------------------------------------------------------------
+// make the right sidebar editor
+
+function make_editor(){
+    $("#edit").html("");
+    var t = "<div><button id='b_remove' class='b3'>REMOVE</button>" +
+	"<button id='b_save' class='b3'>SAVE</button></div>";
+    $("#edit").append(t);
+    var t = "<div><button id='b_now' class='b2'>NOW</button>" +
+	"<button id='b_later' class='b2'>LATER</button>" +
+	"<button id='b_done' class='b2'>DONE</button></div>";
+    $("#edit").append(t);
+    var t = "<input id='e_1' style='display:inline-block;" +
+	"padding-left:5px; width:100%;'" +
+	"value='Note title'></input>";
+    $("#edit").append(t);
+    var t = "<textarea rows='15' style='width:100%' id='e_2'>Hello</textarea>";
+    $("#edit").append(t);
+    // hook events onto the buttons
+    $("#b_now").click(function(){button_status_change('now');});
+    $("#b_later").click(function(){button_status_change('later');});
+    $("#b_done").click(function(){button_status_change('done');});
+    $("#b_save").click(function(){button_save('done');});
+    $("#b_remove").click(function(){button_remove('done');});
+}
+
+// rotate status cycles the status
+
+function rotate_status(index){
+    var status=item[index].status;
+    var next = next_state[status];
+    item[index].status = next;
+    update_item_status(index, next);
+    if(index == selected_index){
+	highlight_button(next);
+    };
+}
+
+function update_row_title(index, title){ 
+    var row = $("#row_"+index);
+    var td = $(row.children()[2]);
+    td.text(title);
+} 
+
+
+function update_item_status(index, state){
+    var row = $("#row_"+index);
+    var td = $(row.children()[4]);
+    console.log('update',[state,status_color[state],status_text[state]]);
+    td.css('background-color', status_color[state]);
+    td.text(status_text[state]); 
+}
+
+/* button events 
+ * caused by clicking on buttons
+ */
+
+function button_status_change(status){
+    // the edit status change button on the edit bar has been pressed
+    item[selected_index].status = status;
+    update_item_status(selected_index, status);
+    highlight_button(status);
+    debug();
+}
+
+function button_click_on_cell(index, col){
+    console.log('handle_click', ['index',index,'col',col]);
+    // if we click on status rotate the status
+    // otherwsie load the cell into the editor and rotate
+    $("#row_" + index).addClass('selected');
+    if(col == 4){
+	rotate_status(index);
+    } else {
+	add_editor(index);
+	selected_index = index;
+    };
+    debug();
+}
+
+function button_remove(){
+    alert('remove');
+}
+
+function button_save(){
+    var title = $("#e_1").val();
+    var content = $("#e_2").val();
+    console.log('save',[title,content]);
+    item[selected_index].title=title;
+    item[selected_index].content=content;
+    update_row_title(selected_index, title);
+}
+
+function button_image_clicked(txt){
+    console.log('clicked',txt);
+    switch(txt){
+    case 'Sync': 
+	sync_to_server();
+	break;
+    }
+}
+
+function sync_to_server(){
+    $("#debug").html('syncing');
+    var data = {state:state, items:item};
+    $.ajax({url:'store_data',
+	    // datatype:'json',
+	    data:(JSON.stringify({state:state, items:item})),
+	    success:function(){
+		$("#debug").html('done');
+	    }});
+}
+
+// make_new_item -- this is called ...
+function make_new_item(title){
+    max += 1;
+    item[max] = {index:max,
+		 title:title,
+		 author:who,
+		 content:"",
+		 status :'now',
+		 date:time_now(),
+		 star:false};
+    var old = state.now;
+    console.log('state', state);
+    var now1 =  old.unshift(max);
+    console.log('state', state);
+    make_centre_tables();
+    debug();
+}
+
+function time_now(){
+    var d = new Date();
+    var time = d.toTimeString().substring(0,8);
+    return d.toDateString() + ' ' + time;
+}
+
+// debug - prints the global variables that have changed
+
+function debug(){
+    var t = 'selected_index = ' + selected_index + '<br>';
+    t += 'highlighted_button = ' + highlighted_button + '<br>';
+    t += 'max = ' + max + '<br>';
+    $("#debug").html(t);
+}
+
+</script>
