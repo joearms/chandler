@@ -1,10 +1,15 @@
 
 Experimental clone of chandler
 
-So far I have only looked at the front end. 
-Load triage4.html into chrome browser to play
-...
-
 This is very experimental ...
+
+I now have a working version.
+
+   1) Download
+   2) Make
+   3) Look at http://localhost:7003/rc3.html
+
+rc3 = release canditate 3
+
 
 /Joe
