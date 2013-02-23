@@ -8,9 +8,8 @@ start() ->
     %% compile all the code in the subdirectories
     %% and set paths appropriately
     io:format("a simple_demo....~n"),
-    twit_store:start_link(),
     Port = 7003,
-    io:format("Load the page http://localhost:~p/ in your browser~n",[Port]),
+    io:format("Load the page http://localhost:~p/rc3.html in your browser~n",[Port]),
     erl3_webserver:start_link(fun dispatch/1, Port).
 
 %% dispatch maps names in the HTML onto fixed paths 
