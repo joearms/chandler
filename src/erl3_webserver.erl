@@ -99,19 +99,36 @@ unhex("%20" ++ T) -> [$\s|unhex(T)];
 unhex([H|T])      -> [H|unhex(T)];
 unhex([])         -> []. 
 
+handle1("/write_json_file", Req, Env) ->
+    [{<<"filename">>,FB},{<<"data">>, Bin}] = args(Req),
+    Q1 = unhex(binary_to_list(Bin)),
+    io:format("Q1:~p~n",[Q1]),
+    Json = (catch decode(Q1)),
+    Filename = "./website/" ++ binary_to_list(FB),
+    io:format("Writing:~p~n",[Filename]),
+    {ok, S} =  file:open(Filename, [write]),
+    io:format(S,"~p.~n",[Json]),
+    file:close(S),
+    reply_html("yes", Req, Env);
+handle1("/read_json_file", Req, Env) ->
+    [{<<"filename">>,FB}] = args(Req),
+    Filename = binary_to_list(FB),
+    {ok, [X]} = file:consult(Filename),
+    B = encode(X),
+    reply_html(list_to_binary(B), Req, Env);
 handle1("/read_latest", Req, Env) ->
-    Bin = read_latest(),
+    Bin = read_latest(Env),
     reply_html(Bin, Req, Env);
 handle1("/store_data", Req, Env) ->
-    io:format("extracting args:~p~n",[Req]),
+    %% io:format("extracting args:~p~n",[Req]),
     {Q,_} = cowboy_req:qs(Req),
     %% io:format("Q:~p~n",[Q]),
     Q1 = unhex(binary_to_list(Q)),
-    io:format("Q1:~p~n",[Q1]),
+    %% io:format("Q1:~p~n",[Q1]),
     Args = (catch decode(Q1)),
     dump_json(Args),
     %% Args = args(Req),
-    io:format("Store:~p~n",[Args]),
+    %% io:format("Store:~p~n",[Args]),
     dump_data(Q1),
     reply_html("ok", Req, Env);
 handle1(Resource, Req, Env) ->
@@ -339,8 +356,10 @@ send_websocket(Ws, X) ->
 terminate(A,B,C) ->
     io:format("terminate:~p~n",[A]).
 
-read_latest() ->
-    {ok, [X]} = file:consult("latest.j"),
+read_latest(Env) ->
+    F = Env#env.dispatch,
+    F1 = F("/latest.j"),
+    {ok, [X]} = file:consult(F1),
     B = encode(X),
     io:format("send:~p~n",[B]),
     B.
@@ -354,7 +373,7 @@ index("collection_" ++ T) ->
     list_to_integer(T).
 
 dump_data(Bin) ->
-    Out = make_tmp_filename("backup", 0),
+    Out = make_tmp_filename("./website/backup", 0),
     io:format("** dumping to ~s~n",[Out]),
     file:write_file("latest", Bin),
     file:write_file(Out, Bin).
@@ -367,7 +386,7 @@ make_tmp_filename(Root, N) ->
     end.
 
 dump_json(X) ->
-    {ok, S} = file:open("latest.j", [write]),
+    {ok, S} = file:open("./website/latest.j", [write]),
     io:format(S, "~p.~n",[X]),
     file:close(S).
 

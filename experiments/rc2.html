@@ -149,14 +149,7 @@ function initialize(){
 		gstate = y.state;
 		gmax = y.max;
 		delete gitem; // delete the old reference
-		var zz = y.items;
-		var keys = Object.keys(zz);
-		for(var i in zz){
-		    var o = zz[i];
-		    index = o.index; 
-		    //console.log('index',[index,o]);
-		    gitem[index] = o;
-		};
+		gitem = y.items;
 		make_centre_tables();
 		debug();
 		// alert('keys='+keys+ 'gmax='+gmax);
@@ -187,7 +180,7 @@ function make_centre_tables(){
     // now fill the rows with data
     for(var i in gitem){
 	if(gitem[i] != null){
-	    console.log('debug1:',['i=',i,' item=',gitem[i]]);
+	    // console.log('debug1:',['i=',i,' item=',gitem[i]]);
 	    update_item_status(i, gitem[i].status);
 	};
     };
@@ -398,8 +391,40 @@ function button_click_on_cell(index, col){
     debug();
 }
 
+function remove_item(element, array){
+    // this routine is tricky -- this is where javascripts
+    // string ~ integer coercions could very well hit you in the face
+    // element is a string containing an integer
+    // array is an array of integers so array.indexOf does not find the
+    // thing you want removing
+    // element has to be a sttring since it is a tag in hashmap
+    // suck ...
+    var e1 = parseInt(element);
+    // console.log('before removal',array);
+    var index = array.indexOf(e1);
+    if(index != -1) {
+	array.splice(index, 1);
+    };
+    // console.log('after removal',array);
+}
+
 function button_remove(){
-    alert('remove');
+    // remove selected index
+    // console.log('remove',gitem[selected_index].status);
+    switch(gitem[selected_index].status){
+    case 'now':
+	remove_item(selected_index, gstate.now);
+	break;
+    case 'later':
+	remove_item(selected_index, gstate.later);
+	break;
+    case 'done':
+	remove_item(selected_index, gstate.done);
+	break;
+    };
+    delete gitem[selected_index];
+    make_centre_tables();
+    debug();
 }
 
 function button_save(){
@@ -415,12 +440,83 @@ function button_image_clicked(txt){
     console.log('clicked',txt);
     switch(txt){
     case 'Sync': 
-	sync_to_server();
+	button_sync_to_server();
+	break;
+    case 'Clean up':
+	button_clean_up();
 	break;
     }
 }
 
-function sync_to_server(){
+// cleanup moves now, later, and done items into the correct regions
+
+function button_clean_up(){
+    var i, index, status;
+    // cleanup the top region
+    var now1 = new Array();
+    for(i in gstate.now){
+	index = gstate.now[i];
+	status = gitem[index].status;
+	switch(status){
+	case 'later':
+	    // add to the beginning of the later list
+	    gstate.later.unshift(index);
+	    break;
+	case 'done':
+	    // add to the beginning of the done list
+	    gstate.done.unshift(index);
+	    break;
+	case 'now':
+	    now1.push(index);
+	    break;
+	};
+    };
+    gstate.now = now1;
+    // cleanup the middle region
+    var later1 = new Array();
+    for(i in gstate.later){
+	index = gstate.later[i];
+	status = gitem[index].status;
+	switch(status){
+	case 'later':
+	    // add to the beginning of the later list
+	    later1.push(index);
+	    break;
+	case 'done':
+	    // add to the beginning of the done list
+	    gstate.done.unshift(index);
+	    break;
+	case 'now':
+	    gstate.now.unshift(index);
+	    break;
+	};
+    };
+    gstate.later = later1;
+    // cleanup the bottom (done) region
+    var done1 = new Array();
+    for(i in gstate.done){
+	index = gstate.done[i];
+	status = gitem[index].status;
+	switch(status){
+	case 'later':
+	    // add to the beginning of the later list
+	    gstate.later.unshift(index);
+	    break;
+	case 'done':
+	    // add to the beginning of the done list
+	    done1.push(index);
+	    break;
+	case 'now':
+	    gstate.now.unshift(index);
+	    break;
+	};
+    };
+    gstate.done = done1;
+    make_centre_tables();
+    debug();
+}
+
+function button_sync_to_server(){
     $("#debug").html('syncing');
     var data = {state:gstate, items:item};
     $.ajax({url:'store_data',

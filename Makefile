@@ -1,19 +1,5 @@
-MODS := $(wildcard *.erl)
-
-%.beam: %.erl
-	erlc -W $<
-
-## note this assumes that cowboy is somewhere in your path
-
-all: beam
-	erl -s erl3 start
- 
-##	cd ..; erl -pa src -s websockets start_link 2233 `pwd`		
-
-beam: ${MODS:%.erl=%.beam}
-
-clean:
-	rm -rf *.beam *.so *.o *~ erl_crash.dump
-
-
+all:
+	@test -d deps || rebar get-deps	
+	rebar compile
+	erl -pa './deps/cowboy/ebin' -pa './deps/ranch/ebin' -pa './ebin' -s erl3 start
 

@@ -21,7 +21,8 @@ dispatch(F) ->
     F1.
 
 dispatch1("/" ++ F) ->
-    filename:dirname(code:which(?MODULE)) ++ "/" ++ F.
+    filename:dirname(filename:dirname(code:which(?MODULE)))
+	++ "/website/" ++ F.
 
 pre(X) ->
     erl3_webserver:pre(X).
