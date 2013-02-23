@@ -1,0 +1,12 @@
+{application, chandler,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { chandler_app, []}},
+  {env, []}
+ ]}.
