@@ -34,7 +34,6 @@ div.win {
 .flash { 
     padding-left:20px;
     border-radius:2px;
-    background-color:#aabbcc;
     margin-bottom:2px;
 }
 
@@ -174,9 +173,9 @@ function make_centre_tables(){
 	"<td><b>Who</b></td><td><b>Title</b></td><td><b>Date</b></td><td>" + 
 	"<b>Flag</b></td></tr></table>";
     $("#tables").append(t);
-    make_collapsable_row("t1", "NOW", gstate.now);
-    make_collapsable_row("t2", "LATER", gstate.later);
-    make_collapsable_row("t3", "DONE", gstate.done);
+    make_collapsable_row("t1", 'now', "NOW", gstate.now);
+    make_collapsable_row("t2", 'later', "LATER", gstate.later);
+    make_collapsable_row("t3", 'done', "DONE", gstate.done);
     // now fill the rows with data
     for(var i in gitem){
 	if(gitem[i] != null){
@@ -187,8 +186,9 @@ function make_centre_tables(){
     make_clickable_cells();
 }
 
-function make_collapsable_row(tag, title, rows){
-    var t1 = $("<div class='flash' width='100%'>" + title + "</div>");
+function make_collapsable_row(tag, type, title, rows){
+    var t1 = $("<div class='flash' style='color:white;background-color:" +
+	       status_color[type] + ";' width='100%'>" + title + "</div>");
     $("#tables").append(t1);
     var t2 = "<table class='main' width='100%'>" + cols() +
 	"<tbody id='" + tag + "'>" + add_rows(rows) + "</tbody></table>";
@@ -197,7 +197,7 @@ function make_collapsable_row(tag, title, rows){
 }
 
 function add_rows(rows){
-    console.log('add_rows:', rows);
+    // console.log('add_rows:', rows);
     var index,i,t;
     t = "";
     for(i in rows){ 
@@ -211,7 +211,7 @@ function add_one_row(index, o){
     var t = "<tr id = 'row_" + index + "' tag='" + index +"'>" + 
 	"<td class='clickable'>" + make_star(o.star) + "</td>" +
 	"<td class='clickable'>" + o.author +"</td>" + 
-	"<td class='clickable'>" + o.title + "(" + o.index + ")" + "</td>" +
+	"<td class='clickable'>" + o.title + " (" + o.index + ")" + "</td>" +
 	"<td class='clickable'>" + o.date + "</td>" + 
 	"<td class='b1 clickable'>XXX</td></tr>";
     return t;
