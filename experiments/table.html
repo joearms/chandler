@@ -34,6 +34,10 @@ body {
   </tr>
 </table>
 
+<h1>Auto</h1>
+
+<div id="here"></div>
+
 <script>
 
 var col = {}
@@ -49,10 +53,12 @@ var next_state = {};
 next_state["rot1"] = {"NOW":"LATER", "LATER":"DONE", "DONE":"NOW"};
 next_state["rot2"] = {"RAW":"SPELL", "SPELL":"CHECK", "CHECK":"DONE", "DONE":"RAW"};
 
-$(".icon").click(function(){click_icon($(this))});
-$(".text").click(function(){click_text($(this))});
-$(".rotate").click(function(){click_rotate($(this))});
-$(".rotate").each(function(){set_color($(this));});
+function add_handlers(){
+    $(".icon").unbind().click(function(){click_icon($(this))});
+    $(".text").unbind().click(function(){click_text($(this))});
+    $(".rotate").unbind().click(function(){click_rotate($(this))});
+    $(".rotate").each(function(){set_color($(this));});
+}
 
 function set_color(x){
     var val=x.html();
@@ -67,10 +73,12 @@ function set_color(x){
 last = 0;
 
 function click_rotate(x){
-    var name= x.attr('name');
-    console.log('click_text1', [name]);
+    var name = x.attr('name');
+    console.log('click_rotate name=', [name]);
     var val=x.html();
+    console.log('val=', [val]);
     var next = next_state[name][val];
+    console.log('nxt=', [next]);
     x.html(next);
     var c = col[name][next];
     x.css('background-color', c);
@@ -87,19 +95,77 @@ function click_icon(x){
     }
 }
 
-
 function click_text(x){
     console.log('click_text', x);
     var name= x.attr('name');
-    console.log('click_text1', [name]);
+    console.log('click_text name=', [name]);
     var parent = x.parent();
+    console.log('parent', parent);
     var rowid = parent.attr('rowid');
-    console.log('click_text1', [name,rowid]);
+    console.log('click_text rowid=', [rowid]);
     // set all the children of parent with class=text to blue
     parent.find(".text").css('background-color', '#c8c5dc');
     if(last != 0)last.find(".text").css('background-color', 'white');
     last = parent;
-    
 }
+
+function make_table(tag, table){
+    var t = "<table rowid='222' border='1' width='" + table.width + "'>" + 
+	colspec(table.cols) + 
+	"<tbody id='tab_" + tag + "'></tbody></table>";
+    console.log('her1', [tag, t]);
+    $("#" + tag).html(t);
+}
+
+function colspec(cols){
+    var t = "<colgroup>";
+    for(var i in cols){
+	t += "<col width='" +  cols[i].width + "'/>";
+    };
+    t += "</colgroup>";
+    return t;
+}
+
+function add_row(tag, table, data){
+    var t = "<tr>";
+    console.log('table=',table);
+    for(var i=0; i<data.length; i++){
+	console.log('table[i]=', table.cols[i]);
+	switch(table.cols[i].type){
+	case 'icon':
+	    if(data[i]){
+		t += "<td class='icon'><img src='" + table.cols[i].file + "'></td>";
+	    } else {
+		t += "<td class='icon'><img src='&nbsp;'></td>";
+	    };
+	    break;
+	case 'text':
+	    t += "<td class='text'>" + data[i] + "</td>";
+	    break;
+	case 'rotate':
+	    t += "<td class='rotate' name='" + table.cols[i].name + "'>" + 
+		data[i] + "</td>";
+	    break;
+	};
+    };
+    t += "</tr>";
+    $("#" + tag).append(t);
+}
+
+
+add_handlers();
+
+var tab1 = 
+    {width:'800px',
+     cols:[{width:'20px',type:'icon',name:'star',file:"../website/star.gif"},
+	   {width:'15%',type:'text', name:'text1'},
+	   {width:'',type:'text', name:'text2'},
+	   {width:'80px',type:'rotate', name:'rot1'},
+	   {width:'80px',type:'rotate', name:'rot2'}]};
+
+make_table("here", tab1);
+add_row("tab_here", tab1, [true,'hello','text2','NOW','RAW']);
+add_row("tab_here", tab1, [true,'hello joe','text22 and more','LATER','RAW']);
+add_handlers();
 
 </script>
