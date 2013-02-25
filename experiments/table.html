@@ -1,0 +1,105 @@
+<script src="../website/jquery-1.9.1.min.js"></script>
+
+<style>
+
+body { 
+    margin-left:50px;
+    margin-right:50px;
+    font-family:Arial;
+}
+
+</style>
+
+<table border="1" style="width:600px">
+  <colgroup>
+    <col width='20px'/>
+    <col width="15%"/>
+    <col/>
+    <col width="120px"/>
+    <col width="120px"/>
+  </colgroup>
+  <tr rowid="1">
+    <td class="icon" name='star'><img src="../website/star.gif"/></td>
+    <td class="text" name='text1'>Text 11</td>
+    <td class="text" name='text2'>Text 12</td>
+    <td class="rotate" name='rot1'>NOW</td>
+    <td class="rotate" name='rot2'>RAW</td>
+  </tr>
+  <tr rowid="2">
+    <td class="icon" name='star'><img src="../website/star.gif"/></td>
+    <td class="text" name='text1'>Text 21</td>
+    <td class="text" name='text2'>Text 22</td>
+    <td class="rotate" name='rot1'>LATER</td>
+    <td class="rotate" name='rot2'>CHECK</td>
+  </tr>
+</table>
+
+<script>
+
+var col = {}
+
+col["rot1"] = {"NOW":"rgb(0,204,0)","LATER":"rgb(255,204,0)","DONE":"rgb(92,92,92)"};
+col["rot2"] = {"RAW":"red",
+               "SPELL":"green",
+	       "CHECK":"orange",
+	       "DONE":"rgb(92,92,92)"};
+
+var next_state = {};
+
+next_state["rot1"] = {"NOW":"LATER", "LATER":"DONE", "DONE":"NOW"};
+next_state["rot2"] = {"RAW":"SPELL", "SPELL":"CHECK", "CHECK":"DONE", "DONE":"RAW"};
+
+$(".icon").click(function(){click_icon($(this))});
+$(".text").click(function(){click_text($(this))});
+$(".rotate").click(function(){click_rotate($(this))});
+$(".rotate").each(function(){set_color($(this));});
+
+function set_color(x){
+    var val=x.html();
+    var name=x.attr('name');
+    console.log('set_color',[x,name,val]);
+    var c = col[name][val];
+    console.log('set_color',[x,name,val,c]);
+    x.css({'background-color':c,'color':'white',
+	   'text-align':'center','font-weight':'bold'});
+}
+
+last = 0;
+
+function click_rotate(x){
+    var name= x.attr('name');
+    console.log('click_text1', [name]);
+    var val=x.html();
+    var next = next_state[name][val];
+    x.html(next);
+    var c = col[name][next];
+    x.css('background-color', c);
+}
+
+function click_icon(x){
+    var name= x.attr('name');
+    var val = x.html();
+    console.log('click_icon', [name,val]);
+    if(val == "&nbsp;"){
+	x.html("<img src='../website/star.gif'>");
+    } else {
+	x.html("&nbsp;");
+    }
+}
+
+
+function click_text(x){
+    console.log('click_text', x);
+    var name= x.attr('name');
+    console.log('click_text1', [name]);
+    var parent = x.parent();
+    var rowid = parent.attr('rowid');
+    console.log('click_text1', [name,rowid]);
+    // set all the children of parent with class=text to blue
+    parent.find(".text").css('background-color', '#c8c5dc');
+    if(last != 0)last.find(".text").css('background-color', 'white');
+    last = parent;
+    
+}
+
+</script>
