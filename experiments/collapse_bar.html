@@ -1,0 +1,241 @@
+<script src="../website/jquery-1.9.1.min.js"></script>
+
+<style>
+
+table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    border-collapse:collapse; 
+    background: transparent;
+}
+
+body { 
+    margin-left:50px;
+    margin-right:50px;
+    font-family:Arial;
+}
+
+</style>
+
+<h1>Table1</h1>
+
+<p>This is what I want to achieve:
+
+<table  border="1" style="width:80%" style="background-color:#ff1122;">
+  <tr>
+    <td style="vertical-align:middle; width:20px;background-color:#aaffee;"><img src='../website/images/ArrowLeft.png'/></td>
+    <td align="center" style="width:50px; color:red; background-color:#2233dd;">H1</td>
+    <td style="padding-left:10px; background-color:#aaffee;">Text (100 words)</td>
+    <td style="text-align:center; vertical-align:middle;width:70px; color:red; background-color:#ffaabb;">NOW</td>
+    <td style="text-align:center; vertical-align:middle;width:70px; color:white; background-color:#2233aa;">RAW</td>
+    <td style="vertical-align:middle;width:20px;background-color:#aaffee;"><img src='../website/images/down_arrow.png'/></td>
+    <td style="vertical-align:middle;width:20px;background-color:#aaffee;"><img src='../website/images/up_arrow.png'/></td>
+  </tr>
+  <tr style="border-top:1px solid black">
+    <td style="vertical-align:middle; width:20px;background-color:#aaffee;"><img src='../website/images/ArrowLeft.png'/></td>
+    <td align="center" style="width:50px; color:red; background-color:#2233dd;">H1</td>
+    <td style="padding-left:10px; background-color:#aaffee;">Text (100 words)</td>
+    <td style="text-align:center; vertical-align:middle;width:70px; color:red; background-color:#ffaabb;">NOW</td>
+    <td style="text-align:center; vertical-align:middle;width:70px; color:white; background-color:#2233aa;">RAW</td>
+    <td style="vertical-align:middle;width:20px;background-color:#aaffee;"><img src='../website/images/down_arrow.png'/></td>
+    <td style="vertical-align:middle;width:20px;background-color:#aaffee;"><img src='../website/images/up_arrow.png'/></td>
+  </tr>
+</table>
+
+<h1>Table2</h1>
+
+<style>
+.my td {
+   background-color:#aaffee;
+   vertical-align:middle
+}
+</style>
+
+<p>Same with styling
+
+<table  class="my" border="1" style="width:80%">
+  <tr>
+    <td style="width:20px;"><img src='../website/images/ArrowLeft.png'/></td>
+    <td align="center" style="width:50px; color:red; background-color:#2233dd;">H1</td>
+    <td style="padding-left:10px;">Text (100 words)</td>
+    <td style="text-align:center; width:70px; color:red; background-color:#ffaabb;">NOW</td>
+    <td style="text-align:center; width:70px; color:white; background-color:#2233aa;">RAW</td>
+    <td style="width:20px;"><img src='../website/images/down_arrow.png'/></td>
+    <td style="width:20px;"><img src='../website/images/up_arrow.png'/></td>
+  </tr>
+  <tr style="border-top:1px solid black">
+    <td style="width:20px;"><img src='../website/images/ArrowLeft.png'/></td>
+    <td align="center" style="width:50px; color:red; background-color:#2233dd;">H1</td>
+    <td style="padding-left:10px;">Text (100 words)</td>
+    <td style="text-align:center; width:70px; color:red; background-color:#ffaabb;">NOW</td>
+    <td style="text-align:center; width:70px; color:white; background-color:#2233aa;">RAW</td>
+    <td style="width:20px;"><img src='../website/images/down_arrow.png'/></td>
+    <td style="width:20px;"><img src='../website/images/up_arrow.png'/></td>
+  </tr>
+</table>
+
+<h1>Collapsable rows</h1>
+
+
+<div id="here1"></div>
+<div id="content1">This content</div>
+
+<div id="here2"></div>
+<div id="content2">This content</div>
+
+<h2>Dynamic</h2>
+
+<p>The same produced by js
+
+<div id="dynam"></div>
+
+<h2>Debug</h2>
+
+<div id="debug"></div>
+
+<script>
+
+function add_bar(tag, color, content){
+    var t = $("<div width='100%'><img src='../website/images/ArrowLeft.png'> Text</div>");
+    t.css('background-color',color);
+    t.attr('isopen', "yes");
+    t.click(function(){toggle_bar($(this), content);});
+    $(tag).append(t);
+}
+
+function toggle_bar(x, content){
+    if(x.attr('isopen') == "yes"){
+	x.find('img').attr("src", "../website/images/ArrowLeft.png");
+	x.attr('isopen', "no");
+	$(content).hide();
+    } else {
+	x.find('img').attr("src", "../website/images/ArrowDown.png");
+	x.attr('isopen', "yes");
+	$(content).show();
+    };
+}
+
+
+add_bar('#here1', '#ffaabb', '#content1');
+add_bar('#here2', '#aabbff', '#content2');
+
+function add_handlers(){
+    $(".icon").unbind().click(function(){click_icon($(this))});
+    $(".text").unbind().click(function(){click_text($(this))});
+    $(".rotate").unbind().click(function(){click_rotate($(this))});
+    $(".rotate").each(function(){set_color($(this));});
+}
+
+function image(x){
+    var t = "<td style='width:20px;'><img src='../website/images/" + x + "'/></td>";
+    return t;
+}
+
+function make_row(style, text, tri, info){
+    var t = "<table  class='my' border='1' style='width:80%'>" + 
+	"<tr>" + 
+	image('ArrowLeft.png') + 
+	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + style + "</td>" +
+	"<td style='padding-left:10px;'>" + text + "</td>" +
+	"<td style='text-align:center; width:70px; color:red; background-color:#ffaabb;'>" + tri + "</td>" +
+	"<td style='text-align:center; width:70px; color:white; background-color:#2233aa;'>" + info + "</td>" +
+	image('down_arrow.png') +
+	image('up_arrow.png') + "<tr>";
+    return t;
+}
+
+
+$("#dynam").append(make_row('h1','Notes (230 words)','NOW','RAW'));
+
+var text = {};
+
+text[1] = {type:'text1',tag:'h1', title:"Introduction", content:"Lorem ipsum",
+	   when:'NOW',
+	   phase:'raw', editor:'no', include:true, star:false};
+text[2] = {type:'text1',tag:'h2', title:"A sub header", content:"Lorem ipsum",
+	   when:'NOW',
+	   phase:'raw', editor:'no', include:false, star:false};
+
+var schema = {};
+schema['text1'] = [{name:'tag', type:'enum', vals:['h1','h2','h3']},
+		   {name:'title', type:'string'},
+		   {name:'include', type:'bool'},
+		   {name:'content', type:'string'},
+		   {name:'when', type:'enum', vals:['NOW','LATER','DONE']},
+		   {name:'star', type:'bool'},
+		   {name:'phase', type:'enum', vals:['raw']}
+		  ];
+    
+function check(x){
+    for(i in x){
+	check1(x[i]);
+    }
+}
+
+function check1(x){
+    $("#debug").append('check:' + JSON.stringify(x) + "<br>");
+    console.log('check1', x);
+    var spec = schema[x.type];
+    console.log('spec',spec);
+    if(spec == undefined){
+	console.log("undefined spec", x.type);
+	throw new Error('This is not an error. This is just to abort javascript');
+    };
+    check2(spec, x);
+}
+
+function check2(spec, x){
+    for(var i in spec){
+	var want = spec[i].name;
+	if(x.hasOwnProperty(want)){
+	    var val = x[want];
+	    console.log('check', ['want=',want,'val=',val]);
+	    switch(spec[i].type){
+	    case 'enum':
+		if(spec[i].vals.indexOf(val) == -1){
+		    console.log("x[" + want + "]= " + val + " *** is not one of ", spec[i].vals);
+		    throw new Error('Fatal');
+		    break;
+		};
+		break;
+	    case 'bool':
+		if(val == true || val == false)
+		    break;
+		else {
+		    console.log("x[" + want + "]=" + val + " ** is not a boolean");
+		    throw new Error('Fatal');
+		}
+		break;
+	    }
+	} else {
+	    alert('missing');
+	}
+    };
+    // now check for keys in x that are not in the spec
+    for(var tag in x){
+	console.log('ii',tag);
+	if(!spec.hasOwnProperty(tag)){
+	    if(tag != 'type'){
+		console.log('unknown tag found: ' + tag);
+		throw new Error('Fatal');
+	    }
+	}
+    }
+}
+		
+
+
+check(text);
+
+
+
+		  
+
+
+
+
+</script>
