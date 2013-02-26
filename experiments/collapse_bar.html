@@ -53,6 +53,11 @@ body {
    background-color:#aaffee;
    vertical-align:middle
 }
+
+.my tr {
+border-top:1px solid black
+}
+
 </style>
 
 <p>Same with styling
@@ -97,7 +102,48 @@ body {
 
 <div id="debug"></div>
 
+<h2>App</h2>
+
+<div id="buttons"></div>
+<div id="display"></div>
+
 <script>
+
+function show_data(){
+    var d = $("#display");
+    for(var i in gdoc){
+	console.log('i',[i,gdoc[i]]);
+	var row = grow[gdoc[i]];
+	console.log('row',row);
+	var t = make_row(row.tag, row.title, row.when, row.phase);
+	console.log('t',t);
+	d.append(t);
+    };
+}
+
+
+function add_entry(){
+    var t = "<input style='display:inline-block;margin-top:15px;margin-left:25px;" +
+	"margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%'" +
+	"value='Create a new note' id='input_new_item'></input>";
+    $("#buttons").append(t);
+    // hook an event handler onto the entry
+    $("#input_new_item").focus(function(e){
+	$(this).val('');
+    });
+
+    $("#input_new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('Create a new note');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+}
+
 
 function add_bar(tag, color, content){
     var t = $("<div width='100%'><img src='../website/images/ArrowLeft.png'> Text</div>");
@@ -136,7 +182,7 @@ function image(x){
 }
 
 function make_row(style, text, tri, info){
-    var t = "<table  class='my' border='1' style='width:80%'>" + 
+    var t = "<table class='my' border='1' style='width:80%'>" + 
 	"<tr>" + 
 	image('ArrowLeft.png') + 
 	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + style + "</td>" +
@@ -151,49 +197,62 @@ function make_row(style, text, tri, info){
 
 $("#dynam").append(make_row('h1','Notes (230 words)','NOW','RAW'));
 
-var text = {};
+var grow = {};
+var gdoc = [1,2,1,2,2,2,2,2,1];
 
-text[1] = {type:'text1',tag:'h1', title:"Introduction", content:"Lorem ipsum",
+grow[1] = {type:'row1',
+	   tag:'h1', 
+	   title:"Introduction", 
+	   content:"Lorem ipsum",
 	   when:'NOW',
-	   phase:'raw', editor:'no', include:true, star:false};
-text[2] = {type:'text1',tag:'h2', title:"A sub header", content:"Lorem ipsum",
+	   phase:'raw', 
+	   editor:false, 
+	   include:true, 
+	   star:false};
+grow[2] = {type:'row1',
+	   tag:'p', 
+	   title:"A sub header", 
+	   content:"Lorem ipsum",
 	   when:'NOW',
-	   phase:'raw', editor:'no', include:false, star:false};
+	   phase:'raw', 
+	   editor:false, 
+	   include:false, 
+	   star:false};
 
 var schema = {};
-schema['text1'] = [{name:'tag', type:'enum', vals:['h1','h2','h3']},
-		   {name:'title', type:'string'},
-		   {name:'include', type:'bool'},
-		   {name:'content', type:'string'},
-		   {name:'when', type:'enum', vals:['NOW','LATER','DONE']},
-		   {name:'star', type:'bool'},
-		   {name:'phase', type:'enum', vals:['raw']}
-		  ];
+
+schema['row1'] = {'tag'     : {type:'enum', vals:['h1','h2','p']},
+		  'title'   : {type:'string'},
+		  'include' : {type:'bool'},
+		  'content' : {type:'string'},
+		  'editor'  : {type:'bool'},
+		  'when'    : {type:'enum', vals:['NOW','LATER','DONE']},
+		  'star'    : {type:'bool'},
+		  'phase'   : {type:'enum', vals:['raw']}
+		 };
     
-function check(x){
-    for(i in x){
-	check1(x[i]);
+function check(items){
+    for(i in items){
+	check1(items[i]);
     }
 }
 
 function check1(x){
-    $("#debug").append('check:' + JSON.stringify(x) + "<br>");
-    console.log('check1', x);
+    $("#debug").append('<pre>check:' + JSON.stringify(x, undefined, 4) + "</pre>");
     var spec = schema[x.type];
-    console.log('spec',spec);
     if(spec == undefined){
 	console.log("undefined spec", x.type);
-	throw new Error('This is not an error. This is just to abort javascript');
+	throw new Error('Fatal');
     };
     check2(spec, x);
 }
 
 function check2(spec, x){
     for(var i in spec){
-	var want = spec[i].name;
+	var want = i;
 	if(x.hasOwnProperty(want)){
 	    var val = x[want];
-	    console.log('check', ['want=',want,'val=',val]);
+	    // console.log('check', ['want=',want,'val=',val]);
 	    switch(spec[i].type){
 	    case 'enum':
 		if(spec[i].vals.indexOf(val) == -1){
@@ -207,17 +266,24 @@ function check2(spec, x){
 		    break;
 		else {
 		    console.log("x[" + want + "]=" + val + " ** is not a boolean");
+		    console.log('type', typeof(val));
+		    throw new Error('Fatal');
+		}
+		break;
+	    case 'string':
+		if(typeof(val) != 'string'){
+		    console.log("x[" + want + "]=" + val + " ** is not a string");
 		    throw new Error('Fatal');
 		}
 		break;
 	    }
 	} else {
-	    alert('missing');
+	    console.log('missing1');
+	    throw new Error('Fatal');
 	}
     };
     // now check for keys in x that are not in the spec
     for(var tag in x){
-	console.log('ii',tag);
 	if(!spec.hasOwnProperty(tag)){
 	    if(tag != 'type'){
 		console.log('unknown tag found: ' + tag);
@@ -227,15 +293,8 @@ function check2(spec, x){
     }
 }
 		
-
-
-check(text);
-
-
-
-		  
-
-
-
+check(grow);
+add_entry();
+show_data();
 
 </script>
