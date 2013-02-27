@@ -37,6 +37,8 @@ div.win {
     margin-bottom:2px;
 }
 
+.selected {background-color:blue}
+
 .flash:hover{background-color:yellow}
 
 .but {
@@ -49,6 +51,7 @@ div.win {
     box-shadow: 5px 5px 2px #888;
     border-radius:10px;
 }
+
 </style>
 
 <h1>Instructions</h1>
@@ -138,6 +141,7 @@ status_color['now']        = 'rgb(0,204,0);';
 status_color['later']      = 'rgb(255,204,0);';
 status_color['done']       = 'rgb(92,92,92);';
 status_color['unselected'] = 'rgb(213,213,213);';
+status_color['selected']   = 'rgb(213,213,213);';
 
 var status_text = new Array();
 status_text['now']   = 'NOW';
@@ -295,7 +299,6 @@ function add_entry(){
 	    return false;
 	}
     });
-
 }
 
 function add_image_button(txt, img){
@@ -382,7 +385,6 @@ function update_row_title(index, title){
     td.text(title);
 } 
 
-
 function update_item_status(index, state){
     var row = $("#row_"+index);
     var td = $(row.children()[4]);
@@ -406,16 +408,38 @@ function button_status_change(status){
 function button_click_on_cell(index, col){
     console.log('handle_click', ['index',index,'col',col]);
     // if we click on status rotate the status
-    // otherwsie load the cell into the editor and rotate
-    $("#row_" + index).addClass('selected');
-    if(col == 4){
+    // otherwise load the cell into the editor and rotate
+    var row =  $("#row_" + index);
+    // $("#row_" + index).addClass('selected');
+    if(col == 0){
+	// star
+	toggle_star(index);
+    } else if(col == 4){
+	// the NOW | LATER | DONE
 	rotate_status(index);
     } else {
 	add_editor(index);
+	$(row.children()[1]).css('background-color',status_color['selected']);
+	$(row.children()[2]).css('background-color',status_color['selected']);
+	$(row.children()[3]).css('background-color',status_color['selected']);
+	var oldrow =  $("#row_" + selected_index);
+	$(oldrow.children()[1]).css('background-color','white');
+	$(oldrow.children()[2]).css('background-color','white');
+	$(oldrow.children()[3]).css('background-color','white');
 	selected_index = index;
     };
     debug();
 }
+
+function toggle_star(index){
+    var row =  $("#row_" + index);
+    var old = gitem[index].star;
+    var n = !old;
+    gitem[index].star = n;
+    $(row.children()[0]).html(make_star(n));
+}
+	
+
 
 function remove_item(element, array){
     // this routine is tricky -- this is where javascripts
