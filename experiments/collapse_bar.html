@@ -9,7 +9,6 @@ table, caption, tbody, tfoot, thead, tr, th, td {
     outline: 0;
     font-size: 100%;
     vertical-align: baseline;
-    border-collapse:collapse; 
     background: transparent;
 }
 
@@ -17,6 +16,23 @@ body {
     margin-left:50px;
     margin-right:50px;
     font-family:Arial;
+}
+
+div.win {
+    width:100%;
+    background-color:rgb(246,244,242);
+    border-radius:20px;
+    padding:5 5 5 10;
+    box-shadow: 5px 5px 2px #888;
+}
+
+.my td {
+    background-color:white;
+   vertical-align:middle
+}
+
+.my tr {
+border-top:1px solid black
 }
 
 </style>
@@ -48,17 +64,6 @@ body {
 
 <h1>Table2</h1>
 
-<style>
-.my td {
-   background-color:#aaffee;
-   vertical-align:middle
-}
-
-.my tr {
-border-top:1px solid black
-}
-
-</style>
 
 <p>Same with styling
 
@@ -104,98 +109,12 @@ border-top:1px solid black
 
 <h2>App</h2>
 
-<div id="buttons"></div>
-<div id="display"></div>
+<div class="win">
+  <div id="buttons"></div>
+  <div id="display"></div>
+</div>
 
 <script>
-
-function show_data(){
-    var d = $("#display");
-    for(var i in gdoc){
-	console.log('i',[i,gdoc[i]]);
-	var row = grow[gdoc[i]];
-	console.log('row',row);
-	var t = make_row(row.tag, row.title, row.when, row.phase);
-	console.log('t',t);
-	d.append(t);
-    };
-}
-
-
-function add_entry(){
-    var t = "<input style='display:inline-block;margin-top:15px;margin-left:25px;" +
-	"margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%'" +
-	"value='Create a new note' id='input_new_item'></input>";
-    $("#buttons").append(t);
-    // hook an event handler onto the entry
-    $("#input_new_item").focus(function(e){
-	$(this).val('');
-    });
-
-    $("#input_new_item").keydown(function(e){
-	var keyCode = e.keyCode || e.which;
-	if (keyCode == 13 || keyCode == 10) {
-	    var value = $(this).val();
-	    // console.log('read',value);
-	    $(this).val('Create a new note');
-	    make_new_item(value);
-	    return false;
-	}
-    });
-}
-
-
-function add_bar(tag, color, content){
-    var t = $("<div width='100%'><img src='../website/images/ArrowLeft.png'> Text</div>");
-    t.css('background-color',color);
-    t.attr('isopen', "yes");
-    t.click(function(){toggle_bar($(this), content);});
-    $(tag).append(t);
-}
-
-function toggle_bar(x, content){
-    if(x.attr('isopen') == "yes"){
-	x.find('img').attr("src", "../website/images/ArrowLeft.png");
-	x.attr('isopen', "no");
-	$(content).hide();
-    } else {
-	x.find('img').attr("src", "../website/images/ArrowDown.png");
-	x.attr('isopen', "yes");
-	$(content).show();
-    };
-}
-
-
-add_bar('#here1', '#ffaabb', '#content1');
-add_bar('#here2', '#aabbff', '#content2');
-
-function add_handlers(){
-    $(".icon").unbind().click(function(){click_icon($(this))});
-    $(".text").unbind().click(function(){click_text($(this))});
-    $(".rotate").unbind().click(function(){click_rotate($(this))});
-    $(".rotate").each(function(){set_color($(this));});
-}
-
-function image(x){
-    var t = "<td style='width:20px;'><img src='../website/images/" + x + "'/></td>";
-    return t;
-}
-
-function make_row(style, text, tri, info){
-    var t = "<table class='my' border='1' style='width:80%'>" + 
-	"<tr>" + 
-	image('ArrowLeft.png') + 
-	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + style + "</td>" +
-	"<td style='padding-left:10px;'>" + text + "</td>" +
-	"<td style='text-align:center; width:70px; color:red; background-color:#ffaabb;'>" + tri + "</td>" +
-	"<td style='text-align:center; width:70px; color:white; background-color:#2233aa;'>" + info + "</td>" +
-	image('down_arrow.png') +
-	image('up_arrow.png') + "<tr>";
-    return t;
-}
-
-
-$("#dynam").append(make_row('h1','Notes (230 words)','NOW','RAW'));
 
 var grow = {};
 var gdoc = [1,2,1,2,2,2,2,2,1];
@@ -230,7 +149,118 @@ schema['row1'] = {'tag'     : {type:'enum', vals:['h1','h2','p']},
 		  'star'    : {type:'bool'},
 		  'phase'   : {type:'enum', vals:['raw']}
 		 };
-    
+
+var color = {};
+
+color['back'] = 'white';
+
+
+var rot_col = {}
+
+rot_col["when"] = {"NOW":"rgb(0,204,0)","LATER":"rgb(255,204,0)","DONE":"rgb(92,92,92)"};
+rot_col["phase"] = {"raw":"red",
+		    "spell":"green",
+		    "check":"orange",
+		    "done":"rgb(92,92,92)"};
+
+var next_state = {};
+
+next_state["when"] = {"NOW":"LATER", "LATER":"DONE", "DONE":"NOW"};
+next_state["phase"] = {"raw":"spell", "spell":"check", "check":"done", "done":"raw"};
+
+function show_data(){
+    var d = $("#display");
+    var t = "<table class='my' border='1' style='width:80%'>";
+    for(var i in gdoc){
+	console.log('i',[i,gdoc[i]]);
+	var row = grow[gdoc[i]];
+	console.log('row',row);
+	t += make_row(gdoc[i], row.tag, row.title, row.when, row.phase);
+    };
+    t += "</table>";
+    d.append(t);
+    make_clickable_cells();
+}
+
+function make_row(index, tag, text, when, phase){
+    var t = "<tr id='row_" + index + "' tag='" + index + "'>" + 
+	image('ArrowLeft.png') + 
+	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + tag + "</td>" +
+	"<td style='padding-left:10px;'>" + text + "</td>" +
+	make_rot('when', when) + 
+	make_rot('phase', phase) + 
+	image('down_arrow.png') +
+	image('up_arrow.png');
+    return t;
+}
+
+var status_color = new Array();
+status_color['later']      = 'rgb(255,204,0);';
+status_color['done']       = 'rgb(92,92,92);';
+status_color['unselected'] = 'rgb(213,213,213);';
+status_color['selected']   = 'rgb(213,213,213);';
+status_color['raw']        = '#2233aa;';
+
+function make_rot(type, val){
+    var t = "<td class='clickable' rot='true' type='" + type + "' style='text-align:center; width:70px; color:white; background-color:" +
+	rot_col[type][val] + "'>" + val + "</td>";
+    return t;
+}
+
+function add_entry(){
+    var t = "<input style='display:inline-block;margin-top:15px;margin-left:25px;" +
+	"margin-right:25px;padding-left:5px; width:20em;height:35px;font-size:130%'" +
+	"value='Create a new note' id='input_new_item'></input>";
+    $("#buttons").append(t);
+    // hook an event handler onto the entry
+    $("#input_new_item").focus(function(e){
+	$(this).val('');
+    });
+
+    $("#input_new_item").keydown(function(e){
+	var keyCode = e.keyCode || e.which;
+	if (keyCode == 13 || keyCode == 10) {
+	    var value = $(this).val();
+	    // console.log('read',value);
+	    $(this).val('Create a new note');
+	    make_new_item(value);
+	    return false;
+	}
+    });
+}
+
+function add_bar(tag, color, content){
+    var t = $("<div width='100%'><img src='../website/images/ArrowLeft.png'> Text</div>");
+    t.css('background-color',color);
+    t.attr('isopen', "yes");
+    t.click(function(){toggle_bar($(this), content);});
+    $(tag).append(t);
+}
+
+function toggle_bar(x, content){
+    if(x.attr('isopen') == "yes"){
+	x.find('img').attr("src", "../website/images/ArrowLeft.png");
+	x.attr('isopen', "no");
+	$(content).hide();
+    } else {
+	x.find('img').attr("src", "../website/images/ArrowDown.png");
+	x.attr('isopen', "yes");
+	$(content).show();
+    };
+}
+
+function add_handlers(){
+    $(".icon").unbind().click(function(){click_icon($(this))});
+    $(".text").unbind().click(function(){click_text($(this))});
+    $(".rotate").unbind().click(function(){click_rotate($(this))});
+    $(".rotate").each(function(){set_color($(this));});
+}
+
+function image(x){
+    var t = "<td style='width:20px;'><img src='../website/images/" + x + "'/></td>";
+    return t;
+}
+
 function check(items){
     for(i in items){
 	check1(items[i]);
@@ -292,6 +322,61 @@ function check2(spec, x){
 	}
     }
 }
+
+function make_clickable_cells(){
+    // make all <td> with class .clickable clickable
+    $(".clickable").click(function(){
+	var col = $(this).index();
+	var index = $(this).parent().attr('tag');
+	button_click_on_cell(index, col);
+    });
+}
+
+function button_click_on_cell(index, col){
+    console.log('handle_click', ['index',index,'col',col]);
+    // if we click on status rotate the status
+    // otherwise load the cell into the editor and rotate
+    var row =  $("#row_" + index);
+    var td = $(row.children()[col]);
+    var isrot = td.attr('rot');
+    console.log('click td', [row,td,isrot]);
+    if(isrot){
+	var type = td.attr('type');
+	var val  = td.html();
+	var next_text = next_state[type][val];
+	td.html(next_text);
+	var next_col = rot_col[type][next_text];
+	td.css('background-color', next_col);
+    };
+    // $("#row_" + index).addClass('selected');
+    if(col == 0){
+	// star
+	toggle_star(index);
+    } else if(col == 4){
+	// the NOW | LATER | DONE
+	rotate_status(index);
+    } else {
+	add_editor(index);
+	$(row.children()[1]).css('background-color',status_color['selected']);
+	$(row.children()[2]).css('background-color',status_color['selected']);
+	$(row.children()[3]).css('background-color',status_color['selected']);
+	var oldrow =  $("#row_" + selected_index);
+	$(oldrow.children()[1]).css('background-color','white');
+	$(oldrow.children()[2]).css('background-color','white');
+	$(oldrow.children()[3]).css('background-color','white');
+	selected_index = index;
+    };
+    debug();
+}
+
+add_bar('#here1', '#ffaabb', '#content1');
+add_bar('#here2', '#aabbff', '#content2');
+
+
+$("#dynam").append(make_row('h1','Notes (230 words)','NOW','RAW'));
+
+    
+
 		
 check(grow);
 add_entry();
