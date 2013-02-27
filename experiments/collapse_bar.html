@@ -19,7 +19,7 @@ body {
 }
 
 div.win {
-    width:100%;
+    width:600px;
     background-color:rgb(246,244,242);
     border-radius:20px;
     padding:5 5 5 10;
@@ -36,6 +36,18 @@ border-top:1px solid black
 }
 
 </style>
+
+<h2>App</h2>
+
+<div class="win">
+  <div id="buttons"></div>
+  <div id="display"></div>
+</div>
+
+<p>So what's all this MVC stuff. The model
+is a data structure:
+
+
 
 <h1>Table1</h1>
 
@@ -107,22 +119,17 @@ border-top:1px solid black
 
 <div id="debug"></div>
 
-<h2>App</h2>
-
-<div class="win">
-  <div id="buttons"></div>
-  <div id="display"></div>
-</div>
 
 <script>
 
 var grow = {};
-var gdoc = [1,2,1,2,2,2,2,2,1];
+var gdoc = [1,2];
+var gmax = 2;
 
 grow[1] = {type:'row1',
 	   tag:'h1', 
 	   title:"Introduction", 
-	   content:"Lorem ipsum",
+	   content:"This is the first paragraph in the editor",
 	   when:'NOW',
 	   phase:'raw', 
 	   editor:false, 
@@ -131,7 +138,7 @@ grow[1] = {type:'row1',
 grow[2] = {type:'row1',
 	   tag:'p', 
 	   title:"A sub header", 
-	   content:"Lorem ipsum",
+	   content:"This is fragment number two",
 	   when:'NOW',
 	   phase:'raw', 
 	   editor:false, 
@@ -170,27 +177,30 @@ next_state["phase"] = {"raw":"spell", "spell":"check", "check":"done", "done":"r
 
 function show_data(){
     var d = $("#display");
-    var t = "<table class='my' border='1' style='width:80%'>";
+    d.html("");
+    var t = "<table class='my' border='1' style='width:600px'>";
     for(var i in gdoc){
 	console.log('i',[i,gdoc[i]]);
 	var row = grow[gdoc[i]];
 	console.log('row',row);
-	t += make_row(gdoc[i], row.tag, row.title, row.when, row.phase);
+	t += make_row(gdoc[i], row.tag, row.title, row.when, row.phase,
+		      row.content);
     };
     t += "</table>";
     d.append(t);
     make_clickable_cells();
 }
 
-function make_row(index, tag, text, when, phase){
+function make_row(index, tag, text, when, phase, content){
     var t = "<tr id='row_" + index + "' tag='" + index + "'>" + 
 	image('ArrowLeft.png') + 
 	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + tag + "</td>" +
-	"<td style='padding-left:10px;'>" + text + "</td>" +
+	"<td class='clickable' style='padding-left:10px;'>" + text + "</td>" +
 	make_rot('when', when) + 
 	make_rot('phase', phase) + 
 	image('down_arrow.png') +
 	image('up_arrow.png');
+    t += "<tr><td colspan='7'>" + content + "</td>"
     return t;
 }
 
@@ -216,7 +226,6 @@ function add_entry(){
     $("#input_new_item").focus(function(e){
 	$(this).val('');
     });
-
     $("#input_new_item").keydown(function(e){
 	var keyCode = e.keyCode || e.which;
 	if (keyCode == 13 || keyCode == 10) {
@@ -323,6 +332,24 @@ function check2(spec, x){
     }
 }
 
+function make_new_item(val){
+    gmax += 1;
+    grow[gmax] = {type:'row1',
+		  tag:'p', 
+		  title:val,
+		  content:"This is the first paragraph in the editor",
+		  when:'NOW',
+		  phase:'raw', 
+		  editor:false, 
+		  include:true, 
+		  star:false};
+    gdoc.push(gmax);
+    show_data();
+}
+    
+    
+
+
 function make_clickable_cells(){
     // make all <td> with class .clickable clickable
     $(".clickable").click(function(){
@@ -349,35 +376,18 @@ function button_click_on_cell(index, col){
 	td.css('background-color', next_col);
     };
     // $("#row_" + index).addClass('selected');
-    if(col == 0){
-	// star
-	toggle_star(index);
-    } else if(col == 4){
-	// the NOW | LATER | DONE
-	rotate_status(index);
-    } else {
-	add_editor(index);
-	$(row.children()[1]).css('background-color',status_color['selected']);
-	$(row.children()[2]).css('background-color',status_color['selected']);
-	$(row.children()[3]).css('background-color',status_color['selected']);
-	var oldrow =  $("#row_" + selected_index);
-	$(oldrow.children()[1]).css('background-color','white');
-	$(oldrow.children()[2]).css('background-color','white');
-	$(oldrow.children()[3]).css('background-color','white');
-	selected_index = index;
+    if(col == 2){
+	// title
+	var next = row.next();
+	next.toggle();
     };
-    debug();
 }
 
 add_bar('#here1', '#ffaabb', '#content1');
 add_bar('#here2', '#aabbff', '#content2');
 
-
 $("#dynam").append(make_row('h1','Notes (230 words)','NOW','RAW'));
 
-    
-
-		
 check(grow);
 add_entry();
 show_data();

@@ -1,0 +1,69 @@
+<script src="../website/jquery-1.9.1.min.js"></script>
+
+<style>
+
+table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+body { 
+    margin-left:50px;
+    margin-right:50px;
+    font-family:Arial;
+}
+
+div.win {
+    width:600px;
+    background-color:rgb(246,244,242);
+    border-radius:20px;
+    padding:5 5 5 10;
+    box-shadow: 5px 5px 2px #888;
+}
+
+</style>
+
+<p>So what's all this MVC stuff. The model
+is a data structure: Let's suppos the model is
+a varible.</p>
+
+<p>The view tales the model and draws it:
+</p>
+
+<div id="d" style="border:1px solid black;width:400px"></div>
+
+<script>
+
+var todo = [{checked:true,text:"do this"},
+	    {checked:false,text:"do something else"}];
+	    
+function render(){
+    var t = "";
+    for(i in todo)t += add_row(todo[i]);
+    $("#d").html(t);
+}
+
+function add_row(row){
+    return "<p>" + checkbox(row.checked, row.text);
+}
+
+function checkbox(x, txt){
+    switch(x){
+    case true:
+	return "<input type='checkbox' checked='yes'><strike>" +
+	    txt + "</strike>";
+    case false:
+	return "<input type='checkbox'>" + txt;
+    };
+}
+
+render();
+
+</script>
+    
+
