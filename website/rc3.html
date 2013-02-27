@@ -546,6 +546,7 @@ function button_sync_to_server(){
     $("#debug").html('syncing');
     var data = {state:gstate, items:item};
     $.ajax({url:'store_data',
+	    type:'POST',
 	    // datatype:'json',
 	    data:(JSON.stringify({max:gmax, state:gstate, items:gitem})),
 	    success:function(){
