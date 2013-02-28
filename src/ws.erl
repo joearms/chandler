@@ -123,9 +123,23 @@ handle1(["/", "read_json_file"], Req, Env) ->
     {ok, [X]} = file:consult(Filename),
     B = encode(X),
     reply_html(list_to_binary(B), Req, Env);
-handle1(["/", "read_latest"], Req, Env) ->
-    Bin = read_latest(Env),
-    reply_html(Bin, Req, Env);
+handle1(["/", "write_file"], Req, Env) ->
+    [{<<"file">>, F0}] = args(Req),
+    F1 = binary_to_list(F0),
+    {ok, Bin, Req1} = cowboy_req:body(Req),
+    F2 = os:getenv("HOME") ++ "/Dropbox/chandler/" ++ F1,
+    ok = file:write_file(F2, Bin),
+    io:format("wrote:~s ~p bytes~n",[F2, size(Bin)]),
+    reply_html("ok", Req1, Env);
+handle1(["/", "read_file"], Req, Env) ->
+   [{<<"file">>, F0}] = args(Req),
+    F1 = binary_to_list(F0),
+    F2 = os:getenv("HOME") ++ "/Dropbox/chandler/" ++ F1,
+    io:format("read: ~s~n",[F2]),
+    {ok, B} = file:read_file(F2),
+    io:format("read: ~s ~p bytes~n",[F2, size(B)]),
+    reply_html(B, Req, Env);
+
 handle1(["/", "store_data"], Req, Env) ->
     %% io:format("extracting args:~p~n",[Req]),
     {ok, Q, Req1} = cowboy_req:body(Req),

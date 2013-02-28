@@ -86,7 +86,11 @@ div.win {
     </tr>
     <tr>
       <td valign="top" width="15%">
-	<div id="left">This area is left deliberatly blank. Stuff will appear here soon</div>
+	<div id="left">
+        <button id="add_cat">Add New Category</button>
+        <h2>Categories</h2>
+        Current category is: <span id="current">NONE</span>
+        <div id="categories"></div>
       </td>
       <td valign="top">
 	<div id="tables">Table</div>
@@ -164,12 +168,46 @@ var selected_index = 0;
 var gstate = {};
 var gitem = {};
 var gmax = 0;
+var gcat = "NONE"; // the current category
+var gall = [] ; // list of all categories
 
 $(window).ready(initialize);
 
-function initialize(){
-    make_top_buttons();
-    $.ajax({url:'read_latest',
+function get_categories(){
+    $.ajax({url:'read_file?file=categories.j',
+	    success:function(x){
+		// console.log('read', x);
+		var y = JSON.parse(x);
+		// console.log('read yyy', y);
+		render_categories(y);
+		load_category(y.current);
+	    }});
+}
+
+function render_categories(x){
+    // $("#categories").html(JSON.stringify(x));
+    gcurrent = x.current;
+    gall = x.all;
+    // make a clickable list of categories
+    var t = "";
+    for(i in x.all){
+	var b = $("<button>");
+	var v1 = x.all[i];
+	b.html(v1);
+	b.click(mk_load_category(v1));
+	$("#categories").append(b).append("<br>");
+    };
+}
+
+function mk_load_category(x){
+    return function(){load_category(x);};
+}
+
+function load_category(x){
+    $("#current").html(x);
+    gcat = x;
+    console.log("load category", x);
+    $.ajax({url:'read_file?file=' + x + '.cat',
 	    success:function(x){
 		// console.log('read', x);
 		var y = JSON.parse(x);
@@ -180,8 +218,24 @@ function initialize(){
 		gitem = y.items;
 		make_centre_tables();
 		debug();
-		// alert('keys='+keys+ 'gmax='+gmax);
 	    }});
+}
+
+function add_new_category(){
+    var x = prompt('new category name');
+    if(gall.indexOf(x) != -1){
+	alert("illegal name");
+    } else {
+	gall.push(x);
+	console.log('gall', gall);
+    }
+}
+
+
+function initialize(){
+    $("#add_cat").click(add_new_category);
+    get_categories();
+    make_top_buttons();
     make_editor();
     // called once
     debug();
@@ -569,7 +623,7 @@ function button_clean_up(){
 function button_sync_to_server(){
     $("#debug").html('syncing');
     var data = {state:gstate, items:item};
-    $.ajax({url:'store_data',
+    $.ajax({url:'write_file?' + gcat + '.j',
 	    type:'POST',
 	    // datatype:'json',
 	    data:(JSON.stringify({max:gmax, state:gstate, items:gitem})),
