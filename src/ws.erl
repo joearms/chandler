@@ -7,7 +7,7 @@
 	 start_embedded/1,
 	 init/3,      websocket_init/3,
 	 handle/2,    websocket_handle/3, 
-	 terminate/2, websocket_terminate/3,
+	 terminate/3, websocket_terminate/3,
 	 websocket_info/3,
 	 append_div/3,
 	 pre/1,
@@ -93,7 +93,7 @@ init(_, Req, E0) ->
 	    {ok, Req, E0}
     end.
 
-terminate(_, _) ->  
+terminate(_Reason, _Req, _State) ->  
     ok.
     
 handle(Req, Env) ->
