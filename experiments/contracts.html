@@ -1,0 +1,131 @@
+<script src="./jquery-1.7.1.min.js"></script>
+
+State: <span id="state"></span><br>
+Next Message:<pre id="next"></pre>
+<p><button id='compute'>compute next step</button>
+<div id="result"></div>
+<p><button id='step'>step</button>
+
+    
+<script>
+var fsm = new Array();
+fsm =
+    [{state:'start',from:'client',msg:'login',next_state:'wait_challenge'},
+     {state:'wait_challenge', from:'server', msg:'challenge', next_state:'wait_response'}, 
+     {state:'wait_response', from:'client', msg:'response', next_state:'wait_auth'},
+     {state:'wait_auth', from:'server', msg:'auth_ok', next_state:'logged_in'},
+     {state:'wait_auth', from:'server', msg:'auth_bad', next_state:'start'}];
+
+var type = new Array();
+
+type['login']     = {name:'string'};
+type['challenge'] = {ran:'string'};
+type['response']  = {token:'string'};
+
+var seq = new Array();
+seq = [{from:'client', msg:{type:'login', name:'joe'}},
+       {from:'server', msg:{type:'challenge', ran:'12345'}},
+       {from:'client', msg:{type:'response', token:'abc'}},
+       {from:'client', msg:{type:'auth_ok'}}];
+
+var gi = 0;
+var gstate = 'start'
+
+$("#state").html(gstate);
+$("#next").html(JSON.stringify(seq[gi], 4, undefined));
+$('#compute').click(compute);
+$('#step').click(step);
+
+function step(){
+    var next = $("#result").html();
+    $("#state").html(next);
+    gi++;
+    $("#next").html(JSON.stringify(seq[gi], 4, undefined));
+}
+
+function compute(){
+    // compute the next step
+    for(i=0;i<fsm.length;i++){
+	var v = is_legal(gstate, seq[gi], fsm[i]);
+	if(v){
+	    var next=fsm[i].next_state;
+	    $("#result").html(next);
+	    return true;
+	}
+    };
+    $("#result").html('no rule matches');
+}
+
+function is_legal(state, event, rule){
+    console.log('is_legal', ['state', state, 'event', event, 'rule', rule]);
+    if(rule.state == state &&
+       rule.from  == event.from &&
+       rule.msg   == event.msg.type){
+	return check_type(event.msg);
+    } else {
+	return false;
+    }
+}
+
+function check_type(msg){
+    var def = type[msg.type];
+    if(def == undefined){
+	return false;
+    } else {
+	return is_instance(msg.type, def, msg);
+    };
+}
+
+function is_instance(t, def, x){
+    console.log('is_instance', ['is', JSON.stringify(x), 'instance of', 
+				JSON.stringify(def)]);
+    // iterate over all the keys in def
+    for(var i in def){
+	var want = i;
+	if(x.hasOwnProperty(want)){
+	    var val = x[want];
+	    var required_type = def[i];
+	    console.log('check', [want,'must be', required_type, 'is',val]);
+	    switch(required_type){
+	    case 'enum':
+		if(def[i].vals.indexOf(val) == -1){
+		    console.log("x[" + want + "]= " + val + " *** is not one of ", spec[i].vals);
+		    return false;
+		    break;
+		};
+		break;
+	    case 'bool':
+		if(val == true || val == false)
+		    break;
+		else {
+		    console.log("x[" + want + "]=" + val + " ** is not a boolean");
+		    console.log('type', typeof(val));
+		    return false;
+		}
+		break;
+	    case 'string':
+		if(typeof(val) != 'string'){
+		    console.log("x[" + want + "]=" + val + " ** is not a string");
+		    return false;
+		}
+		break;
+	    }
+	} else {
+	    console.log('missing1');
+	    return false;
+	}
+    };
+    // now check for keys in x that are not in the spec
+    for(var tag in x){
+	if(!def.hasOwnProperty(tag)){
+	    if(tag != 'type'){
+		console.log('unknown tag found: ' + tag);
+		return false;
+	    }
+	}
+    };
+    return true;
+}
+
+
+</script>
