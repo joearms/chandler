@@ -1,10 +1,13 @@
-<script src="./jquery-1.7.1.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
 
 State: <span id="state"></span><br>
 Next Message:<pre id="next"></pre>
 <p><button id='compute'>compute next step</button>
 <div id="result"></div>
 <p><button id='step'>step</button>
+
+<h2>Simulation</h2>
+<div id="log"></div>
 
     
 <script>
@@ -21,12 +24,26 @@ var type = new Array();
 type['login']     = {name:'string'};
 type['challenge'] = {ran:'string'};
 type['response']  = {token:'string'};
+type['auth_ok']   = {};
+type['auth_bad']  = {};
 
 var seq = new Array();
 seq = [{from:'client', msg:{type:'login', name:'joe'}},
        {from:'server', msg:{type:'challenge', ran:'12345'}},
        {from:'client', msg:{type:'response', token:'abc'}},
-       {from:'client', msg:{type:'auth_ok'}}];
+       {from:'server', msg:{type:'auth_ok'}}];
+
+var seq1 = new Array();
+seq1 = [{from:'client', msg:{type:'login', name:'joe'}},
+        {from:'server', msg:{type:'challenge', ran:'12345'}},
+        {from:'client', msg:{type:'response', token:'abc'}},
+        {from:'server', msg:{type:'auth_bad'}}];
+
+var seq2 = new Array();
+seq2 = [{from:'client', msg:{type:'login', name:'joe'}},
+       {from:'server', msg:{type:'challenge', str:'12345'}},
+       {from:'client', msg:{type:'response', token:'abc'}},
+       {from:'server', msg:{type:'auth_bad'}}];
 
 var gi = 0;
 var gstate = 'start'
@@ -36,15 +53,71 @@ $("#next").html(JSON.stringify(seq[gi], 4, undefined));
 $('#compute').click(compute);
 $('#step').click(step);
 
+function print_rules(x){
+    $("#log").append('Checking the sequence:<br>');
+    for(var i=0;i<x.length;i++){
+	var t = i + ":" + JSON.stringify(x[i]) + "<br>";
+	$("#log").append(t);
+    };
+}
+
+function print_contract(x){
+    $("#log").append("<h2>Contract</h2>");
+    for(var i=0;i<x.length;i++){
+	var t = i + ":" + JSON.stringify(x[i]) + "<br>";
+	$("#log").append(t);
+    };
+}
+
+function run_sim(text, seq) {
+    $("#log").append("<h2>Simulation " + text + "</h2>");
+    print_rules(seq);
+    var state='start';
+    var i = 0;
+    while(i < seq.length){
+	var t = "State:" + red(state) + " Next event:" +  JSON.stringify(seq[i]) + "<br>";
+	$("#log").append(t);
+	// compute the next state
+	var next = next_state(state, seq[i]);
+	if(next.ret == 'ok'){
+	    state = next.val;
+	    $("#log").append('next state=' + red(state) + '<br>');
+	} else {
+	    $("#log").append('*** error contract is violated<br>');
+	    return false;
+	}
+	i++;
+    }
+}
+
+function red(x) {
+    return "<font color='red'>" + x + "</font>";
+}
+
 function step(){
     var next = $("#result").html();
     $("#state").html(next);
+    gstate=next;
     gi++;
     $("#next").html(JSON.stringify(seq[gi], 4, undefined));
 }
 
+
+function next_state(state, event){
+    for(i=0;i<fsm.length;i++){
+	var v = is_legal(state, event, fsm[i]);
+	if(v){
+	    var next=fsm[i].next_state;
+	    return {ret:'ok', val:next};
+	}
+    };
+    return {ret:'error'};
+}
+    
+
 function compute(){
     // compute the next step
+    console.log('compute next step', ['gstate=', gstate]);
     for(i=0;i<fsm.length;i++){
 	var v = is_legal(gstate, seq[gi], fsm[i]);
 	if(v){
@@ -126,6 +199,12 @@ function is_instance(t, def, x){
     };
     return true;
 }
+
+print_contract(fsm);
+
+run_sim('seq', seq);
+run_sim('seq1', seq1);
+run_sim('seq2', seq2);
 
 
 </script>
