@@ -11,8 +11,7 @@
 	 websocket_info/3,
 	 append_div/3,
 	 pre/1,
-	 fill_div/3,
-	 terminate/3
+	 fill_div/3
 	]).
 
 %% env has only one parameter - reserved for future expansion
@@ -93,9 +92,6 @@ init(_, Req, E0) ->
 	    {ok, Req, E0}
     end.
 
-terminate(_Reason, _Req, _State) ->  
-    ok.
-    
 handle(Req, Env) ->
     Root = Env#env.root,
     io:format("~s:Calling handle1 path=~p ~n",[?MODULE, path(Req)]),
@@ -374,8 +370,10 @@ send_websocket(Ws, X) ->
 
 terminate({normal,shutdown},_, _) ->
     true;
-terminate(A,B,C) ->
-    io:format("terminate:~p~n",[A]).
+terminate(_Reason,_Req,_State) ->
+    true.
+
+    
 
 read_latest(Env) ->
     F = os:getenv("HOME") ++ "/Dropbox/chandler/latest.j",
