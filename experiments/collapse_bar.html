@@ -26,6 +26,8 @@ div.win {
     box-shadow: 5px 5px 2px #888;
 }
 
+ table {border-collapse:collapse}
+
 .my td {
     background-color:white;
    vertical-align:middle
@@ -34,6 +36,10 @@ div.win {
 .my tr {
 border-top:1px solid black
 }
+
+td.content {padding:1em;
+text-align:justify;
+background-color:#eaeafa}
 
 </style>
 
@@ -129,7 +135,7 @@ var gmax = 2;
 grow[1] = {type:'row1',
 	   tag:'h1', 
 	   title:"Introduction", 
-	   content:"This is the first paragraph in the editor",
+	   content:"Grumpy wizards make toxic brew for the evil Queen and Jack. One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections. The bedding was hardly able to cover it and seemed ready to slide off any moment. <p>His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked. One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. He lay on his armour-like back, and if he lifted his head a little he could see his brown belly, slightly domed and divided by arches into stiff sections.<p> The bedding was hardly able to cover it and seemed ready to slide off any moment. His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked.",
 	   when:'NOW',
 	   phase:'raw', 
 	   editor:false, 
@@ -138,7 +144,7 @@ grow[1] = {type:'row1',
 grow[2] = {type:'row1',
 	   tag:'p', 
 	   title:"A sub header", 
-	   content:"This is fragment number two",
+	   content:"Once our simulation has been started we’ll want to send messages between| the different processes in the program. Remember that in Erlang, processes| share no memory and can only interact with each other by sending messages.| This is exactly how objects in the real world behave.",
 	   when:'NOW',
 	   phase:'raw', 
 	   editor:false, 
@@ -178,7 +184,7 @@ next_state["phase"] = {"raw":"spell", "spell":"check", "check":"done", "done":"r
 function show_data(){
     var d = $("#display");
     d.html("");
-    var t = "<table class='my' border='1' style='width:600px'>";
+    var t = "<table class='my' style='width:600px'>";
     for(var i in gdoc){
 	console.log('i',[i,gdoc[i]]);
 	var row = grow[gdoc[i]];
@@ -194,13 +200,13 @@ function show_data(){
 function make_row(index, tag, text, when, phase, content){
     var t = "<tr id='row_" + index + "' tag='" + index + "'>" + 
 	image('ArrowLeft.png') + 
-	"<td align='center' style='width:50px; color:red; background-color:#2233dd;'>" + tag + "</td>" +
+	"<td align='center' style='width:50px; color:red; background-color:#cccce8;'>" + tag + "</td>" +
 	"<td class='clickable' style='padding-left:10px;'>" + text + "</td>" +
 	make_rot('when', when) + 
 	make_rot('phase', phase) + 
 	image('down_arrow.png') +
 	image('up_arrow.png');
-    t += "<tr><td colspan='7'>" + content + "</td>"
+    t += "<tr><td class='content' colspan='7'>" + content + "</td>"
     return t;
 }
 
