@@ -256,10 +256,13 @@ classify_extension(".js")  -> js;
 classify_extension(".css") -> css;
 classify_extension(".mp3") -> mp3;
 classify_extension(".wav") -> wav;
+classify_extension(".swf") -> swf;
 classify_extension(_)      -> html.
 
 known_file_type(X) ->
-    lists:member(X, [".wav", ".mp3", ".ico",".html", ".js", ".jpg", ".css", ".png", ".gif"]).
+    lists:member(X, [".swf",
+		     ".wav", ".mp3", ".ico",".html", 
+		     ".js", ".jpg", ".css", ".png", ".gif"]).
 
 
 mime_type(ico)     -> "image/x-icon";
@@ -269,7 +272,6 @@ mime_type(png)     -> "image/png";
 mime_type(css)     -> "text/css";
 mime_type(mp3)     -> "audio/mpeg";
 mime_type(wav)     -> "audio/wav";
-
 mime_type(special) -> "text/plain; charset=x-user-defined";
 mime_type(json)    -> "application/json";
 mime_type(swf)     -> "application/x-shockwave-flash";

@@ -134,12 +134,13 @@ handle1("/store_data", Req, Env) ->
 handle1(Resource, Req, Env) ->
     F = Env#env.dispatch,
     File = F(Resource),
-    io:format("mapped to:~p (isdir=~p)~n",[File,filelib:is_dir(File)]),
+    io:format("MMmapped to:~p (isdir=~p)~n",[File,filelib:is_dir(File)]),
     case filelib:is_dir(File) of
 	true ->
 	    list_dir(File, Req, Env);
 	false ->
-	    Ext = filename:extension(Resource),
+	    Ext = filename:extension(File),
+	    io:format("extension=~p~n",[Ext]),
 	    case known_file_type(Ext) of
 		true ->
 		    serve_file(File, Req, Env);
@@ -211,10 +212,13 @@ classify_extension(".jpg") -> jpg;
 classify_extension(".png") -> png;
 classify_extension(".js")  -> js;
 classify_extension(".css") -> css;
+classify_extension(".swf") -> swf;
+
 classify_extension(_)      -> html.
 
 known_file_type(X) ->
-    lists:member(X, [".ico",".html", ".js", ".jpg", ".css", ".png", ".gif"]).
+    lists:member(X, [".mp3", ".swf",
+		     ".ico",".html", ".js", ".jpg", ".css", ".png", ".gif"]).
 
 
 mime_type(ico)     -> "image/x-icon";
