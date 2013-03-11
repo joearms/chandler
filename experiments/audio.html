@@ -1,0 +1,15 @@
+<script src="/chandler/website/jquery-1.9.1.min.js"></script>
+<script src="/chandler/experiments/howler.js"></script>
+
+
+<button id="q"><img width="150" src="duck.jpg"/></button>
+
+
+<script>
+var sound = new Howl({
+  urls: ['/chandler/experiments/quack.wav']
+}).play();
+
+$("#q").click(function(){sound.stop().play();});
+
+</script>

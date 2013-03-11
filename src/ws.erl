@@ -3,8 +3,6 @@
 -import(mochijson2, [encode/1, decode/1]).
 
 -export([start_link/1,
-	 start_link/2,
-	 start_embedded/1,
 	 init/3,      websocket_init/3,
 	 handle/2,    websocket_handle/3, 
 	 terminate/3, websocket_terminate/3,
@@ -18,50 +16,50 @@
 
 -record(env, {root}).
 
-start([Aport]) ->
-    Port = list_to_integer(atom_to_list(Aport)),
-    io:format("ws strat:~p~n",[Port]),
-    start_link(a, Port).
+start([Config]) ->
+    File = (atom_to_list(Config)),
+    io:format("ws start:~p~n",[File]),
+    Conf = read_config(File),
+    start_link(Conf).
 
-start_embedded(Port) ->
-    ok   = application:start(ranch),
-    ok   = application:start(cowboy),
-    web_server_start(Port, "zip"),
-    receive
-	after 
-	    infinity ->
-		true
+require(Key, Config) ->
+    case lists:keysearch(Key, 1, Config) of
+	{value,{_,Val}} ->
+	    Val;
+	false ->
+	    io:format("** fatal error no paramamer called:~p~n",[Key]),
+	    init:stop()
 	end.
 
-start_link([PortAtom, DirAtom]) ->
-    Port = list_to_integer(atom_to_list(PortAtom)),
-    Dir  = atom_to_list(DirAtom),
-    io:format("Starting server on port:~p Dir:~p~n",[Port,Dir]),
-    start_link(Dir, Port).
+read_config(File) ->
+    Abs = File ++ ".config",
+    io:format("Consulting:~p~n",[Abs]),
+    case file:consult(Abs) of
+	{ok, Terms} ->
+	    io:format("Starting with:~p~n",[Terms]),
+	    Terms;
+	{error, Why} ->
+	    io:format("Error consulting:~p~n",[Abs])
+    end.
 
-start_link(Dispatch, Port) ->
+start_link(Conf) ->
     ok = application:start(crypto),
     ok = application:start(ranch),  
     ok = application:start(cowboy),
-    ok = web_server_start(Port, Dispatch),
+    ok = web_server_start(Conf),
     receive
 	after 
 	    infinity ->
 		true
 	end.
     
-web_server_start(Port, Dispatcher) ->
-    Root = filename:dirname(filename:dirname(code:which(?MODULE))) ++ "/website",
-    E0 = #env{root=Root},
-    Dispatch = cowboy_router:compile([
-     				      {'_', 
- 				       [
-    					{'_', ?MODULE, E0}
-    				       ]}
-    				     ]),  
+web_server_start(Conf) ->
+    Port = require(port, Conf), 
+    E0 = Conf,
+    Dispatch = cowboy_router:compile([{'_',[{'_', ?MODULE, Conf}]}]),  
     
     %% server is the name of this module
-    NumberOfAcceptors = 100,
+    NumberOfAcceptors = 10,
     Status = 
 	cowboy:start_http(my_named_thing,
 			  NumberOfAcceptors,
@@ -73,12 +71,11 @@ web_server_start(Port, Dispatcher) ->
 		      "port ~p probably in use~n", [Port]),
 	    init:stop();
 	{ok, _Pid} ->
-	    io:format("webserver with websockets started on port:~p~n",[Port]),
-	    io:format("Server root=~p~n",[Root])
+	    io:format("webserver with websockets started on port:~p~n",[Port])
     end.
 
-init(_, Req, E0) ->
-    %% io:format("Init~n"),
+init(Conf, Req, E0) ->
+    io:format("Init: Conf:~p~n",[E0]),
     Resource = path(Req),
     %% io:format("init Resource =~p Env=~p~n",[Resource, E0]),
     case Resource of
@@ -93,7 +90,6 @@ init(_, Req, E0) ->
     end.
 
 handle(Req, Env) ->
-    Root = Env#env.root,
     io:format("~s:Calling handle1 path=~p ~n",[?MODULE, path(Req)]),
     handle1(path(Req), Req, Env).
 
@@ -120,6 +116,7 @@ handle1(["/", "read_json_file"], Req, Env) ->
     B = encode(X),
     reply_html(list_to_binary(B), Req, Env);
 handle1(["/", "write_file"], Req, Env) ->
+    io:format("debiug:~p~n",[args(Req)]),
     [{<<"file">>, F0}] = args(Req),
     F1 = binary_to_list(F0),
     {ok, Bin, Req1} = cowboy_req:body(Req),
@@ -147,21 +144,52 @@ handle1(["/", "store_data"], Req, Env) ->
     Args = (catch decode(Q)),
     write_debug(Args),
     reply_html("ok", Req1, Env);
-handle1(["/" | File], Req, Env) ->
-    File1 = filename:join([Env#env.root|File]),
-    %% io:format("here12334:~p (isdir=~p)~n",[File1,filelib:is_dir(File1)]),
-    case filelib:is_dir(File1) of
+handle1(_, Req, Env) ->
+    File1 = file_path(Req),
+    File2 = map(File1, Env),
+    io:format("here12334:~p (isdir=~p)~n",[File2,filelib:is_dir(File2)]),
+    case filelib:is_dir(File2) of
 	true ->
-	    list_dir(File1, Req, Env);
+	    list_dir(File2, Req, Env);
 	false ->
-	    Ext = filename:extension(File),
-	    case known_file_type(Ext) of
-		true ->
-		    serve_file(File1, Req, Env);
-		false ->
-		    serve_wierdo_file(Ext, File1, Req, Env)
+	    case filename:extension(File2) of
+		[] ->
+		    serve_file(File2, Req, Env);
+		Ext ->
+		    case known_file_type(Ext) of
+			true ->
+			    serve_file(File2, Req, Env);
+			false ->
+			    serve_wierdo_file(Ext, File2, Req, Env)
+		    end
 	    end
     end.
+
+map(File, Conf) ->
+    io:format("map: ~p with ~p~n", [File, Conf]),
+    map1(File, Conf).
+
+map1(File, [{map,Stem,O}|T]) ->
+    case remove_prefix(Stem, File) of
+	{yes, Rest} ->
+	    F1 = O ++ Rest,
+	    io:format("Rest:~p expand:~p~n",[Rest, F1]),
+	    expand(F1);
+	no ->
+	    map1(File, T)
+    end;
+map1(File, [_|T]) ->
+    map1(File, T);
+map1(File, []) ->
+    File.
+
+remove_prefix([], T)         -> {yes, T};
+remove_prefix([H|T1],[H|T2]) -> remove_prefix(T1, T2);
+remove_prefix(_, _)          -> no. 
+
+expand("${HOME}" ++ T) -> os:getenv("HOME") ++ expand(T);
+expand([H|T])          -> [H|expand(T)];
+expand([])             -> [].
 
 serve_wierdo_file("." ++ Str, Res, Req, Env) ->
     Mod = list_to_atom("wierdo_handler_" ++ Str),
@@ -179,7 +207,7 @@ ehe_expand(A, Req, Env) ->
     reply_html(Html, Req, Env).
 
 serve_file(File, Req, Env) ->
-    %% io:format("serve_abs:~p~n",[File]),
+    io:format("serve_abs:~p~n",[File]),
     Val = file:read_file(File),
     case Val of 
 	{error, _} ->
@@ -226,10 +254,12 @@ classify_extension(".jpg") -> jpg;
 classify_extension(".png") -> png;
 classify_extension(".js")  -> js;
 classify_extension(".css") -> css;
+classify_extension(".mp3") -> mp3;
+classify_extension(".wav") -> wav;
 classify_extension(_)      -> html.
 
 known_file_type(X) ->
-    lists:member(X, [".ico",".html", ".js", ".jpg", ".css", ".png", ".gif"]).
+    lists:member(X, [".wav", ".mp3", ".ico",".html", ".js", ".jpg", ".css", ".png", ".gif"]).
 
 
 mime_type(ico)     -> "image/x-icon";
@@ -237,6 +267,9 @@ mime_type(gif)     -> "image/gif";
 mime_type(jpg)     -> "image/jpeg";
 mime_type(png)     -> "image/png";
 mime_type(css)     -> "text/css";
+mime_type(mp3)     -> "audio/mpeg";
+mime_type(wav)     -> "audio/wav";
+
 mime_type(special) -> "text/plain; charset=x-user-defined";
 mime_type(json)    -> "application/json";
 mime_type(swf)     -> "application/x-shockwave-flash";
@@ -257,8 +290,12 @@ quote([])       -> [].
 path(Req) ->
     {Path,_} = cowboy_req:path(Req),
     P = filename:split(binary_to_list(Path)),
-    %% io:format("Path=~p~n",[P]),
+    io:format("Path=~p~n",[P]),
     P.
+
+file_path(Req) ->
+    {Path,_} = cowboy_req:path(Req),
+    binary_to_list(Path).
 
 args(Req) ->
     {Args, _} = cowboy_req:qs_vals(Req),

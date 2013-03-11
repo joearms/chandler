@@ -1,6 +1,6 @@
-<script src="./jquery-1.9.1.min.js"></script>
+<script src="jquery-1.9.1.min.js"></script>
 <link rel="stylesheet" href="./jquery-ui.css" />
-<script src="./jquery-ui.js"></script>
+<script src="jquery-ui.js"></script>
 <style>
 
 body{
@@ -174,7 +174,7 @@ var gall = [] ; // list of all categories
 $(window).ready(initialize);
 
 function get_categories(){
-    $.ajax({url:'read_file?file=categories.j',
+    $.ajax({url:'/read_file?file=categories.j',
 	    success:function(x){
 		// console.log('read', x);
 		var y = JSON.parse(x);
@@ -207,7 +207,7 @@ function load_category(x){
     $("#current").html(x);
     gcat = x;
     console.log("load category", x);
-    $.ajax({url:'read_file?file=' + x + '.cat',
+    $.ajax({url:'/read_file?file=' + x + '.cat',
 	    success:function(x){
 		// console.log('read', x);
 		var y = JSON.parse(x);
@@ -623,7 +623,7 @@ function button_clean_up(){
 function button_sync_to_server(){
     $("#debug").html('syncing');
     var data = {state:gstate, items:item};
-    $.ajax({url:'write_file?' + gcat + '.j',
+    $.ajax({url:'/write_file?file=' + gcat + '.j',
 	    type:'POST',
 	    // datatype:'json',
 	    data:(JSON.stringify({max:gmax, state:gstate, items:gitem})),
