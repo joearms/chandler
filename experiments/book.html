@@ -1,0 +1,72 @@
+<script src="/chandler/website/jquery-1.9.1.min.js"></script>
+
+<style>
+
+</style>
+
+<button id="lb">List books</button>
+<button id="nb">New book</button>
+<div id="books"></div>
+
+<div id="debug"></div>
+
+
+<script>
+
+$("#lb").click(list_books);
+$("#nb").click(new_book);
+
+function list_books(){
+    var f = function(x){
+	console.log("books", x);
+	show_books(x.files);
+    };
+    rpc('web_book','list_books',[],f);
+}
+
+function show_books(x){
+    var s = '';
+    for(var i in x){
+	s += x[i] + '<br>';
+    };
+    $("#books").html(s);
+}
+
+
+function new_book(){
+    var n = prompt("Filename");
+    var f = function(x){new_book_created(x, n);};
+    rpc('web_book','new_book',[n],f);
+}
+
+function new_book_created(x, n){
+    switch(x){
+    case true:
+	alert(n + ' created');
+	break;
+    case false:
+	alert(n + ' not create give a new name');
+	break;
+    };
+}
+    
+
+function result(x){
+    console.log('result',x);
+}
+
+
+function rpc(mod,func,args,callback){
+    $.ajax({url:'/eval',
+	    type:'POST',
+	    datatype:'json',
+	    data:(JSON.stringify({
+		mod:mod,
+		func:func,
+		args:args})),
+	    success:function(x){
+		console.log('x',x);
+		callback(x);
+	    }});;
+}
+</script>

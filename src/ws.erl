@@ -98,6 +98,15 @@ unhex("%20" ++ T) -> [$\s|unhex(T)];
 unhex([H|T])      -> [H|unhex(T)];
 unhex([])         -> []. 
 
+handle1(["/","eval"], Req, Env) ->
+    {ok, Q, Req1} = cowboy_req:body(Req),
+    Json = (catch decode(Q)),
+    io:format("Q=~p~n",[Json]),
+    {struct,[{<<"mod">>,MS},{<<"func">>,FS},{<<"args">>,Args}]} = Json,
+    Mod = b2a(MS),
+    Func = b2a(FS),
+    Ret = apply1(Mod, Func, Args),
+    reply_json(Ret, Req, Env);
 handle1(["/", "write_json_file"], Req, Env) ->
     [{<<"filename">>,FB},{<<"data">>, Bin}] = args(Req),
     Q1 = unhex(binary_to_list(Bin)),
@@ -319,6 +328,10 @@ reply_html(Obj, Req, Env) ->
     {ok, Req1} = send_page(html, Obj, Req),
     {ok, Req1, Env}.
 
+reply_json(Obj, Req, Env) ->
+    {ok, Req1} = send_page(json, Obj, Req),
+    {ok, Req1, Env}.
+
 %%----------------------------------------------------------------------
 %% websocket stuff
 
@@ -448,3 +461,22 @@ make_tmp_filename(Root, N) ->
 	false -> Name
     end.
 
+b2a(B) ->
+    list_to_atom(binary_to_list(B)).
+
+apply1(Mod, Func, Args) ->
+    case apply(Mod, Func, Args) of
+	{'EXIT', Why} ->
+	    io:format("Error calling:~p:~p(~p) => ~p~n",[Mod,Func,Args,Why]),
+	    <<"error">>;
+	Json ->
+	    case catch encode(Json) of
+		{'EXIT', Why1} ->
+		    io:format("Not a json term:~p~n", [Json]),
+		    <<"error">>;
+		Ret ->
+		    Ret
+	    end
+    end.
+
+		    
